@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# CUSTOM GITIGNORE
+.DS_Store
+*.csv
