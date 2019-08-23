@@ -4,7 +4,7 @@
 '''
 
 from datetime import datetime
-from utils import error, notice
+from lib.utils import error, notice
 import os
 import pandas
 
@@ -34,8 +34,8 @@ class Storage:
     def load(self):
         ''' Indirect User Method: Load Storage '''
         try:
-            notice('Storage \'{}\' loaded.'.format(self.name))
             self.storage = pandas.read_csv(self.name + '.csv')
+            notice('Storage \'{}\' loaded.'.format(self.name))
         except FileNotFoundError:
             notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(self.name))
             Storage.setup(self, input('Columns : ').split(' '))
