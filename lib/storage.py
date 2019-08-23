@@ -15,7 +15,8 @@ class Storage:
 
     def append(self, data):
         ''' User Method: Append Data '''
-        self.storage = self.storage.append(pandas.DataFrame([[str(datetime.now())] + data], columns=list(self.storage.columns)))
+        time = str(datetime.now())
+        self.storage = self.storage.append(pandas.DataFrame([[time[0:len(time)-7]] + data], columns=list(self.storage.columns)))
 
     def delete(self):
         ''' User Method: Delete Storage '''
@@ -38,7 +39,8 @@ class Storage:
             notice('Storage \'{}\' loaded.'.format(self.name))
         except FileNotFoundError:
             notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(self.name))
-            Storage.setup(self, input('Columns : ').split(' '))
+            notice('Please input names of columns, separate values using commas.')
+            Storage.setup(self, [i.strip() for i in input('(Input) ').split(',')])
 
     def save(self):
         ''' User Method: Save Storage '''
@@ -50,7 +52,10 @@ class Storage:
     
     def setup(self, columns):
         ''' System Method: View Storage '''
-        self.storage = pandas.DataFrame([], columns=['timestamp'] + columns)
+        try:
+            self.storage = pandas.DataFrame([], columns=['timestamp'] + columns)
+        except:
+            error('Something unexpected happened. Please try again.')
 
     def view(self):
         ''' User Method: View Storage '''

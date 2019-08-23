@@ -9,6 +9,7 @@
 from extensions.kanji import kanji_calculate
 from lib.storage import Storage
 from lib.utils import error, notice
+import numpy
 
 def main():
     ''' Main Function '''
@@ -27,8 +28,7 @@ def main():
         print('[S] Save Storage')
         print('[V] View Storage')
         print('[X] Exit Application')
-        print('[K] Kanji Calculation')
-        print('[AK] Append Kanji Data')
+        extensions_actions()
         print()
         operate(storage_main, input('(Action) ').split(' ')[0].upper())
 
@@ -44,14 +44,33 @@ def operate(storage_main, action):
         print()
         storage_main.view()
     elif action == 'X':
-        exit()
-    elif action == 'K':
         print()
-        print('- Kanji Calculation -')
-        print(kanji_calculate(int(input('Current Page: ')), int(input('Current Line: '))))
-    elif action == 'AK':
-        storage_main.append([kanji_calculate(int(i.split('-')[0]), int(i.split('-')[1])) for i in input('Appending Data: ').split(' ')])
-    else:
+        exit()
+    elif not extensions_operations(storage_main, action):
         error('Invalid action.')
+
+def extensions_actions():
+    ''' Function: Extensions actions '''
+    print('[KS] Kanji Status')
+    print('[KA] Append Kanji Data')
+
+def extensions_operations(storage_main, action):
+    ''' Function: Extensions operations '''
+    if action == 'KS':
+        kanji_amount_list = numpy.array(storage_main.storage[['n5', 'n4', 'n3', 'n2', 'n1', '-']]).tolist()[-1]
+        print()
+        print('- Kanji Status -')
+        print('Total Kanji:', sum(kanji_amount_list))
+        print('N5:', kanji_amount_list[0])
+        print('N4:', kanji_amount_list[1])
+        print('N3:', kanji_amount_list[2])
+        print('N2:', kanji_amount_list[3])
+        print('N1:', kanji_amount_list[4])
+        print('- :', kanji_amount_list[5])
+        return True
+    elif action == 'KA':
+        storage_main.append([kanji_calculate(int(i.split('-')[0]), int(i.split('-')[1])) for i in input('Appending Kanji Data: ').split(' ')])
+        return True
+    return False
 
 main()
