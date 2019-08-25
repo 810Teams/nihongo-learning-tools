@@ -23,9 +23,9 @@ class Storage:
         notice('Delete this storage? This cannot be undone.')
         response = input('(Y/N) ').strip().upper()
 
-        while (response not in ['Y', 'N']):
+        while response not in ['Y', 'N']:
             if response == 'Y':
-                os.remove(self.name + '.csv')
+                os.remove(self.name + '.csv', 'data/')
             elif response == 'N':
                 pass
             else:
@@ -35,7 +35,7 @@ class Storage:
     def load(self):
         ''' Indirect User Method: Load Storage '''
         try:
-            self.storage = pandas.read_csv(self.name + '.csv')
+            self.storage = pandas.read_csv('data/' + self.name + '.csv')
             notice('Storage \'{}\' loaded.'.format(self.name))
         except FileNotFoundError:
             notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(self.name))
@@ -48,7 +48,7 @@ class Storage:
             os.remove(self.name + '.csv')
         except FileNotFoundError:
             pass
-        self.storage.to_csv(self.name + '.csv', index=None, header=True)
+        self.storage.to_csv('data/' + self.name + '.csv', index=None, header=True)
     
     def setup(self, columns):
         ''' System Method: View Storage '''
