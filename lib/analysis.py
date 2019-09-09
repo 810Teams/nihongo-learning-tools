@@ -149,10 +149,10 @@ def analysis_kanji_development(data, chart_type='total default'):
     elif chart_type == 'total stacked':
         chart.y_labels = range(0, sum([i for i in data[-1][1:]]) + 50, 50)
     elif chart_type == 'rate default':
-        chart.y_labels = range(0, max([max([data[i][j] - data[i - 1][j] for i in range(1, len(data))]) for j in range(1, 7)]) + 1, 1)
+        chart.y_labels = range(0, max([max([data[i][j] - data[i - 1][j] for i in range(1, len(data))]) for j in range(1, 7)]) + 2, 2)
     elif chart_type == 'rate stacked':
         raw_data = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, 7)]
-        chart.y_labels = range(0, max([sum([raw_data[j][i] for j in range(len(raw_data))]) for i in range(len(raw_data[0]))]) + 1, 1)
+        chart.y_labels = range(0, max([sum([raw_data[j][i] for j in range(len(raw_data))]) for i in range(len(raw_data[0]))]) + 4, 4)
 
     # Chart Legends
     chart.legend_at_bottom = True

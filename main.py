@@ -3,7 +3,7 @@
     <!-- Docs go here -->
 
     @author 810Teams
-    @version a0.3.0
+    @version a0.3.1
 '''
 
 from lib.analysis import analysis
