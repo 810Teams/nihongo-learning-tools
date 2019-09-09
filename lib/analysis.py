@@ -8,20 +8,37 @@ from datetime import timedelta
 import numpy
 import pandas
 import pygal
+from pygal.style import DefaultStyle
+from pygal.style import DarkStyle
+from pygal.style import NeonStyle
+from pygal.style import DarkSolarizedStyle
+from pygal.style import LightSolarizedStyle
+from pygal.style import LightStyle
 from pygal.style import CleanStyle
+from pygal.style import RedBlueStyle
+from pygal.style import DarkColorizedStyle
+from pygal.style import LightColorizedStyle
+from pygal.style import TurquoiseStyle
+from pygal.style import LightGreenStyle
+from pygal.style import DarkGreenStyle
+from pygal.style import DarkGreenBlueStyle
+from pygal.style import BlueStyle
 from lib.utils import error, notice
 
-def analysis(df):
+def analysis(df, style='DefaultStyle'):
     ''' Function: Analysis '''
     data = numpy.array(df).tolist()
     data = clean(data)
 
     # Analysis
-    analysis_kanji_total(data)
-    analysis_kanji_development(data, chart_type='total default')
-    analysis_kanji_development(data, chart_type='total stacked')
-    analysis_kanji_development(data, chart_type='rate default')
-    analysis_kanji_development(data, chart_type='rate stacked')
+    try:
+        analysis_kanji_total(data, style=eval(style))
+        analysis_kanji_development(data, chart_type='total default', style=eval(style))
+        analysis_kanji_development(data, chart_type='total stacked', style=eval(style))
+        analysis_kanji_development(data, chart_type='rate default', style=eval(style))
+        analysis_kanji_development(data, chart_type='rate stacked', style=eval(style))
+    except NameError:
+        error('Invalid style name found. Aborting chart creation process.')
 
 def clean(data):
     ''' Function: Clean Data '''
@@ -54,7 +71,7 @@ def clean(data):
     # Step 6 - Return
     return data
 
-def analysis_kanji_total(data):
+def analysis_kanji_total(data, style=DefaultStyle):
     ''' Function: Bar Chart Analysis '''
     chart = pygal.Bar()
 
@@ -80,12 +97,13 @@ def analysis_kanji_total(data):
     chart.legend_box_size = 16
 
     # Chart Render
+    chart.style = style
     chart.render_to_file('charts/kanji_total.svg')
 
     # Notice
     notice('Chart \'kanji_total\' successfully exported.')
 
-def analysis_kanji_development(data, chart_type='total default'):
+def analysis_kanji_development(data, chart_type='total default', style=DefaultStyle):
     ''' Function: Line Chart Analysis '''
     # Chart Define
     chart_type = [i.lower() for i in chart_type.split()]
@@ -166,6 +184,7 @@ def analysis_kanji_development(data, chart_type='total default'):
         pass
 
     # Chart Render
+    chart.style = style
     if 'default' in chart_type:
         chart.dots_size = 2.5
         chart.fill = False

@@ -17,6 +17,8 @@ class Storage:
         ''' User Method: Append Data '''
         time = str(datetime.now())
         self.storage = self.storage.append(pandas.DataFrame([[time[0:len(time)-7]] + data], columns=list(self.storage.columns)))
+        print()
+        notice('Data {} has been added to the storage.'.format(data))
 
     def delete(self):
         ''' User Method: Delete Storage '''
@@ -32,11 +34,12 @@ class Storage:
                 error('Invalid choice. Please input again.')
                 response = input('(Y/N) ')
 
-    def load(self):
+    def load(self, save_mode=False):
         ''' Indirect User Method: Load Storage '''
         try:
             self.storage = pandas.read_csv('data/' + self.name + '.csv')
-            notice('Storage \'{}\' loaded.'.format(self.name))
+            if not save_mode:
+                notice('Storage \'{}\' loaded.'.format(self.name))
         except FileNotFoundError:
             notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(self.name))
             notice('Please input names of columns, separate values using commas.')
@@ -49,6 +52,7 @@ class Storage:
         except FileNotFoundError:
             pass
         self.storage.to_csv('data/' + self.name + '.csv', index=None, header=True)
+        self.load(save_mode=True)
     
     def setup(self, columns):
         ''' System Method: View Storage '''
