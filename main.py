@@ -28,7 +28,7 @@ def main():
         print('[KA] Append Kanji Data')
         print('[KC] Kanji Charts')
         print('[KS] Kanji Status')
-        print('[D] Delete Storage')
+        # print('[D] Delete Storage')
         print('[S] Save Storage')
         print('[V] View Storage')
         print('[X] Exit Application')
