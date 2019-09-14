@@ -17,33 +17,24 @@ class Storage:
         ''' User Method: Append Data '''
         time = str(datetime.now())
         self.storage = self.storage.append(pandas.DataFrame([[time[0:len(time)-7]] + data], columns=list(self.storage.columns)))
-        print()
         notice('Data {} has been added to the storage.'.format(data))
 
-    def delete(self):
-        ''' User Method: Delete Storage '''
-        notice('Delete this storage? This cannot be undone.')
-        response = input('(Y/N) ').strip().upper()
-
-        while response not in ['Y', 'N']:
-            if response == 'Y':
-                os.remove(self.name + '.csv', 'data/')
-            elif response == 'N':
-                pass
-            else:
-                error('Invalid choice. Please input again.')
-                response = input('(Y/N) ')
-
-    def load(self, save_mode=False):
+    def load(self):
         ''' Indirect User Method: Load Storage '''
         try:
             self.storage = pandas.read_csv('data/' + self.name + '.csv')
-            if not save_mode:
-                notice('Storage \'{}\' loaded.'.format(self.name))
         except FileNotFoundError:
             notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(self.name))
             notice('Please input names of columns, separate values using commas.')
             Storage.setup(self, [i.strip() for i in input('(Input) ').split(',')])
+    
+    def reload(self):
+        ''' Indirect User Method: Reload Storage '''
+        try:
+            self.storage = pandas.read_csv('data/' + self.name + '.csv')
+            notice('Storage \'{}\' is reloaded.'.format(self.name))
+        except FileNotFoundError:
+            self.load()
 
     def save(self):
         ''' User Method: Save Storage '''
@@ -52,7 +43,7 @@ class Storage:
         except FileNotFoundError:
             pass
         self.storage.to_csv('data/' + self.name + '.csv', index=None, header=True)
-        self.load(save_mode=True)
+        self.reload()
     
     def setup(self, columns):
         ''' System Method: View Storage '''

@@ -1,9 +1,8 @@
 '''
     `main.py`
-    <!-- Docs go here -->
 
     @author 810Teams
-    @version a0.4.0
+    @version a0.5.0
 '''
 
 from lib.analysis import analysis
@@ -18,8 +17,8 @@ def main():
     print()
 
     if load_default_storage():
-        storage_main = Storage(load_default_storage())
         notice('File \'DEFAULT_STORAGE.txt\' is found. Now proceeding to storage loading.')
+        storage_main = Storage(load_default_storage())
     else:
         notice('Please Input Storage Name')
         storage_main = Storage(input('(Input) ').strip())
@@ -31,6 +30,7 @@ def main():
         print('- Action List -')
         print('[A] Append Data (-k : kanji)')
         print('[C] Kanji Charts (-s <StyleName> : style)')
+        print('[R] Reload Storage')
         print('[S] Save Storage')
         print('[V] View Storage')
         print('[X] Exit Application')
@@ -43,10 +43,11 @@ def operate(storage_main, action, args):
     ''' Function: Operate a specific action '''
     if action == 'A':
         if '-k' in args:
-            notice('Please input kanji data in x-y format.')
-            storage_main.append([kanji_calculate(int(i.split('-')[0]), int(i.split('-')[1])) for i in input('(Input) ').split()])
+            notice('Please input kanji data in a-1,b-2,b-3 format.')
+            storage_main.append([kanji_calculate(int(i.split('-')[0]), int(i.split('-')[1])) for i in input('(Input) ').replace(' ', '').split(',')])
         else:
-            storage_main.append([int(i) for i in input('(Input) ').split()])
+            notice('Please input data in a,b,c format.')
+            storage_main.append([int(i) for i in input('(Input) ').replace(' ', '').split(',')])
     elif action == 'C':
         if '-s' in args:
             analysis(storage_main.storage, style=args[args.index('-s') + 1])
@@ -57,6 +58,8 @@ def operate(storage_main, action, args):
                 analysis(storage_main.storage, style=load_default_style())
             else:
                 analysis(storage_main.storage)
+    elif action == 'R':
+        storage_main.reload()
     elif action == 'S':
         storage_main.save()
         notice('Storage \'{}\' saved successfully.'.format(storage_main.name))
@@ -78,7 +81,7 @@ def load_default_storage():
 def load_default_style():
     ''' Function: Load default style '''
     try:
-        name = list(open('DEFAULT_STYLE.txt'))[0].replace('\n', '').strip()
+        name = [i.replace('\n', '').strip() for i in list(open('DEFAULT_STYLE.txt'))][0]
         return name
     except FileNotFoundError:
         return None

@@ -37,7 +37,7 @@ def analysis(df, style='DefaultStyle'):
         analysis_kanji_development(data, chart_type='total stacked', style=eval(style))
         analysis_kanji_development(data, chart_type='rate default', style=eval(style))
         analysis_kanji_development(data, chart_type='rate stacked', style=eval(style))
-    except NameError:
+    except (NameError, SyntaxError):
         error('Invalid style name found. Aborting chart creation process.')
 
 def clean(data):
