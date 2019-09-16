@@ -44,10 +44,16 @@ def operate(storage_main, action, args):
     if action == 'A':
         if '-k' in args:
             notice('Please input kanji data in a-1,b-2,b-3 format.')
-            storage_main.append([kanji_calculate(int(i.split('-')[0]), int(i.split('-')[1])) for i in input('(Input) ').replace(' ', '').split(',')])
+            print()
+            temp = input('(Input) ')
+            print()
+            storage_main.append([kanji_calculate(int(i.split('-')[0]), int(i.split('-')[1])) for i in temp.replace(' ', '').split(',')])
         else:
             notice('Please input data in a,b,c format.')
-            storage_main.append([int(i) for i in input('(Input) ').replace(' ', '').split(',')])
+            print()
+            temp = input('(Input) ')
+            print()
+            storage_main.append([int(i) for i in temp.replace(' ', '').split(',')])
     elif action == 'C':
         if '-s' in args:
             analysis(storage_main.storage, style=args[args.index('-s') + 1])
