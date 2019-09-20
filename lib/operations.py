@@ -8,7 +8,7 @@ from lib.default_loader import load_default_style
 from lib.storage import Storage
 from lib.utils import error, kanji_calculate, notice
 
-import subprocess
+import os
 
 
 def operate_a(storage_main, args):
@@ -44,7 +44,7 @@ def operate_c(storage_main, args):
 
     if '-o' in args:
         try:
-            subprocess.call(['script/view_charts.sh'])
+            os.system('open charts/*')
         except (FileNotFoundError, OSError, PermissionError):
             error('Something unexpected happened, please try again.')
 
@@ -63,9 +63,9 @@ def operate_v(storage_main, args):
     ''' Function: Operation Code 'V' (View Storage) '''
     storage_main.view()
 
-    if 'o' in args:
+    if '-o' in args:
         try:
-            subprocess.call(['script/view_storage.sh'])
+            os.system('open data/' + storage_main.name + '.csv')
         except (FileNotFoundError, OSError, PermissionError):
             error('Something unexpected happened, please try again.')
 

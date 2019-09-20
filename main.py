@@ -2,7 +2,7 @@
     `main.py`
 
     @author 810Teams
-    @version a0.5.1
+    @version a0.6.0
 '''
 
 from lib.default_loader import load_default_storage
