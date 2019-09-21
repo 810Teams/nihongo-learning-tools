@@ -9,7 +9,7 @@ from lib.utils import error, notice
 import numpy
 
 AUTHOR = '810Teams'
-VERSION = 'b1.0.0'
+VERSION = 'b1.0.1'
 OPERATIONS = {
     'A': 'Append Data (-k : kanji)',
     'C': 'Kanji Charts (-s <StyleName> : style, -o : open)',
@@ -22,10 +22,7 @@ OPERATIONS = {
 
 def main():
     ''' Main Function '''
-    print()
-    print('- Personal Kanji Tracker App -')
-    print(('by {} ({})'.format(AUTHOR, VERSION)).center(28))
-    print()
+    show_app_title()
 
     if load_default_storage():
         notice(
@@ -35,8 +32,21 @@ def main():
         notice('Please Input Storage Name')
         storage_main = Storage(input('(Input) ').strip())
         print()
-    storage_main.load()
 
+    storage_main.load()
+    start_operating(storage_main)
+
+
+def show_app_title():
+    ''' Function: Show application title '''
+    print()
+    print('- Personal Kanji Tracker App -')
+    print(('by {} ({})'.format(AUTHOR, VERSION)).center(28))
+    print()
+
+
+def start_operating(storage_main):
+    ''' Function: Start operating application '''
     while True:
         print()
         print('- Action List -')
