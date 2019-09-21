@@ -1,6 +1,5 @@
 '''
     `utils.py`
-    @author 810Teams
 '''
 
 

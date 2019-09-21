@@ -1,6 +1,5 @@
 '''
-    `default_loader.py`
-    @author 810Teams
+    `loaders.py`
 '''
 
 

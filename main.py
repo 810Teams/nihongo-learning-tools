@@ -1,21 +1,30 @@
 '''
     `main.py`
-
-    @author 810Teams
-    @version a0.6.0
 '''
 
-from lib.default_loader import load_default_storage
+from lib.loaders import load_default_storage
 from lib.operations import operate_a, operate_c, operate_r, operate_s, operate_v, operate_x
 from lib.storage import Storage
 from lib.utils import error, notice
 import numpy
 
+AUTHOR = '810Teams'
+VERSION = 'b1.0.0'
+OPERATIONS = {
+    'A': 'Append Data (-k : kanji)',
+    'C': 'Kanji Charts (-s <StyleName> : style, -o : open)',
+    'R': 'Reload Storage',
+    'S': 'Save Storage',
+    'V': 'View Storage (-o : open)',
+    'X': 'Exit Application'
+}
+
 
 def main():
     ''' Main Function '''
     print()
-    print('- Personal Kanji Tracker Terminal Application -')
+    print('- Personal Kanji Tracker App -')
+    print(('by {} ({})'.format(AUTHOR, VERSION)).center(28))
     print()
 
     if load_default_storage():
@@ -31,12 +40,10 @@ def main():
     while True:
         print()
         print('- Action List -')
-        print('[A] Append Data (-k : kanji)')
-        print('[C] Kanji Charts (-s <StyleName> : style, -o : open)')
-        print('[R] Reload Storage')
-        print('[S] Save Storage')
-        print('[V] View Storage (-o : open)')
-        print('[X] Exit Application')
+
+        for i in OPERATIONS:
+            print('[{}] {}'.format(i, OPERATIONS[i]))
+
         print()
         action = [i for i in input('(Action) ').split()]
         print()
@@ -45,19 +52,9 @@ def main():
 
 def operate(storage_main, action, args):
     ''' Function: Operate a specific action '''
-    if action == 'A':
-        operate_a(storage_main, args)
-    elif action == 'C':
-        operate_c(storage_main, args)
-    elif action == 'R':
-        operate_r(storage_main, args)
-    elif action == 'S':
-        operate_s(storage_main, args)
-    elif action == 'V':
-        operate_v(storage_main, args)
-    elif action == 'X':
-        operate_x(storage_main, args)
-    else:
+    try:
+        eval('operate_{}(storage_main, args)'.format(action.lower()))
+    except NameError:
         error('Invalid action. Please try again.')
 
 

@@ -1,6 +1,5 @@
 '''
     `storage.py`
-    @author 810Teams
 '''
 
 from datetime import datetime

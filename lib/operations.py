@@ -1,10 +1,9 @@
 '''
     `operations.py`
-    @author 810Teams
 '''
 
 from lib.analysis import analysis
-from lib.default_loader import load_default_style
+from lib.loaders import load_default_style
 from lib.storage import Storage
 from lib.utils import error, kanji_calculate, notice
 
@@ -45,6 +44,7 @@ def operate_c(storage_main, args):
     if '-o' in args:
         try:
             os.system('open charts/*')
+            notice('Opening chart files...')
         except (FileNotFoundError, OSError, PermissionError):
             error('Something unexpected happened, please try again.')
 
@@ -66,6 +66,7 @@ def operate_v(storage_main, args):
     if '-o' in args:
         try:
             os.system('open data/' + storage_main.name + '.csv')
+            notice('Opening \'{}.csv\'...'.format(storage_main.name))
         except (FileNotFoundError, OSError, PermissionError):
             error('Something unexpected happened, please try again.')
 
