@@ -9,7 +9,7 @@ from lib.utils import error, notice
 import numpy
 
 AUTHOR = '810Teams'
-VERSION = 'b1.0.1'
+VERSION = 'b1.0.2'
 OPERATIONS = {
     'A': 'Append Data (-k : kanji)',
     'C': 'Kanji Charts (-s <StyleName> : style, -o : open)',
@@ -55,9 +55,13 @@ def start_operating(storage_main):
             print('[{}] {}'.format(i, OPERATIONS[i]))
 
         print()
-        action = [i for i in input('(Action) ').split()]
-        print()
-        operate(storage_main, action[0].upper(), action[1:])
+
+        try:
+            action = [i for i in input('(Action) ').split()]
+            print()
+            operate(storage_main, action[0].upper(), action[1:])
+        except IndexError:
+            error('Invalid action format. Please try again.')
 
 
 def operate(storage_main, action, args):
