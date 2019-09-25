@@ -13,18 +13,27 @@ import os
 def operate_a(storage_main, args):
     ''' Function: Operation Code 'A' (Add Data) '''
     if '-k' in args:
-        notice('Please input kanji data in a-1,b-2,b-3 format.')
+        notice('Please input kanji data in a x,b y,c z format.')
         print()
         temp = input('(Input) ')
         print()
-        storage_main.append([kanji_calculate(int(i.split(
-            '-')[0]), int(i.split('-')[1])) for i in temp.replace(' ', '').split(',')])
+
+        try:
+            storage_main.append([kanji_calculate(
+                int(i.split()[0]), int(i.split()[1])) for i in temp.split(',')])
+        except ValueError:
+            error('Invalid value format. Please try again.')
     else:
         notice('Please input data in a,b,c format.')
         print()
         temp = input('(Input) ')
         print()
-        storage_main.append([int(i) for i in temp.replace(' ', '').split(',')])
+
+        try:
+            storage_main.append([int(i.replace(' ', ''))
+                                 for i in temp.split(',')])
+        except ValueError:
+            error('Invalid value format. Please try again.')
 
 
 def operate_c(storage_main, args):
@@ -66,11 +75,14 @@ def operate_v(storage_main, args):
     if '-o' in args:
         try:
             os.system('open data/' + storage_main.name + '.csv')
-            notice('Opening \'{}.csv\'...'.format(storage_main.name))
+            print()
+            notice('Opening file \'{}.csv\''.format(storage_main.name))
         except (FileNotFoundError, OSError, PermissionError):
             error('Something unexpected happened, please try again.')
 
 
 def operate_x(storage_main, args):
     ''' Function: Operation Code 'X' (Exit) '''
+    print()
+    notice('Exitting application.')
     exit()

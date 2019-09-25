@@ -9,7 +9,7 @@ from lib.utils import error, notice
 import numpy
 
 AUTHOR = '810Teams'
-VERSION = 'b1.0.2'
+VERSION = 'b1.0.3'
 OPERATIONS = {
     'A': 'Append Data (-k : kanji)',
     'C': 'Kanji Charts (-s <StyleName> : style, -o : open)',
