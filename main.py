@@ -9,7 +9,7 @@ from lib.utils import error, notice
 import numpy
 
 AUTHOR = '810Teams'
-VERSION = 'b1.0.4'
+VERSION = 'b1.0.5'
 OPERATIONS = {
     'A': 'Append Data (-k : kanji)',
     'C': 'Kanji Charts (-s <StyleName> : style, -o : open)',
@@ -69,7 +69,7 @@ def operate(storage_main, action, args):
     print()
     try:
         eval('operate_{}(storage_main, args)'.format(action.lower()))
-    except NameError:
+    except (NameError, SyntaxError):
         error('Invalid action. Please try again.')
 
 
