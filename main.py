@@ -9,7 +9,7 @@ from lib.utils import error, notice
 import numpy
 
 AUTHOR = '810Teams'
-VERSION = 'b1.0.3'
+VERSION = 'b1.0.4'
 OPERATIONS = {
     'A': 'Append Data (-k : kanji)',
     'C': 'Kanji Charts (-s <StyleName> : style, -o : open)',
@@ -28,12 +28,13 @@ def main():
         notice(
             'File \'DEFAULT_STORAGE.txt\' is found. Now proceeding to storage loading.')
         storage_main = Storage(load_default_storage())
+        notice('Storage \'{}\' is loaded.'.format(storage_main.name))
     else:
         notice('Please Input Storage Name')
         storage_main = Storage(input('(Input) ').strip())
         print()
 
-    storage_main.load()
+    storage_main.load(template='jlpt')
     start_operating(storage_main)
 
 
@@ -58,7 +59,6 @@ def start_operating(storage_main):
 
         try:
             action = [i for i in input('(Action) ').split()]
-            print()
             operate(storage_main, action[0].upper(), action[1:])
         except IndexError:
             error('Invalid action format. Please try again.')
@@ -66,6 +66,7 @@ def start_operating(storage_main):
 
 def operate(storage_main, action, args):
     ''' Function: Operate a specific action '''
+    print()
     try:
         eval('operate_{}(storage_main, args)'.format(action.lower()))
     except NameError:

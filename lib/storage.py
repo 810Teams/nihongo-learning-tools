@@ -22,7 +22,7 @@ class Storage:
         if show_notice:
             notice('Data {} has been added to the storage.'.format(data))
 
-    def load(self, show_notice=True):
+    def load(self, show_notice=True, template=None):
         ''' Indirect User Method: Load Storage '''
         try:
             self.storage = pandas.read_csv('data/' + self.name + '.csv')
@@ -30,9 +30,17 @@ class Storage:
             if show_notice:
                 notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(
                     self.name))
-                notice('Please input names of columns, separate values using commas.')
-            Storage.setup(self, [i.strip()
-                                 for i in input('(Input) ').split(',')])
+
+            if template == 'jlpt':
+                if show_notice:
+                    notice('Storage \'{}\' has been set up by JLPT template.'.format(self.name))
+                Storage.setup(self, ['n5', 'n4', 'n3', 'n2', 'n1', '-'])
+            else:
+                if show_notice:
+                    notice(
+                        'Please input names of columns, separate values using commas.')
+                Storage.setup(self, [i.strip()
+                                     for i in input('(Input) ').split(',')])
 
     def reload(self, show_notice=True):
         ''' Indirect User Method: Reload Storage '''

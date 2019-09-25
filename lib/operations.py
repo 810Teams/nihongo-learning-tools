@@ -83,6 +83,6 @@ def operate_v(storage_main, args):
 
 def operate_x(storage_main, args):
     ''' Function: Operation Code 'X' (Exit) '''
-    print()
     notice('Exitting application.')
+    print()
     exit()
