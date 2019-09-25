@@ -103,8 +103,14 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# CUSTOM GITIGNORE
+# MacOS
 .DS_Store
-# /data
-# *.csv
-/charts
+
+# Application Customs
+charts/
+data/
+DEFAULT_STORAGE.txt
+DEFAULT_STYLE.txt
+
+# Personal Customs
+kanji_list.txt
