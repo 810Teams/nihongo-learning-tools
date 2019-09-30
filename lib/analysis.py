@@ -24,37 +24,36 @@ from pygal.style import DarkGreenStyle
 from pygal.style import DarkGreenBlueStyle
 from pygal.style import BlueStyle
 from lib.utils import error, notice, average
+from time import perf_counter
+
+COLUMNS = list()
 
 
-def analysis(df, style='DefaultStyle'):
+def analysis(df, duration=None, dynamic=False, style='DefaultStyle'):
     ''' Function: Analysis '''
+    global COLUMNS
+    COLUMNS = df.columns[1:]
+
     data = numpy.array(df).tolist()
-    data = clean(data)
+    data = clean(data, duration=duration, dynamic=dynamic)
 
     # Analysis
     try:
-        analysis_kanji_total(data, style=eval(style), data_gap=10)
-        analysis_kanji_development(
-            data, chart_type='total default', style=eval(style), data_gap=20)
-        analysis_kanji_development(
-            data, chart_type='total stacked', style=eval(style), data_gap=50)
-        analysis_kanji_development(
-            data, chart_type='rate default',  style=eval(style), data_gap=1)
-        analysis_kanji_development(
-            data, chart_type='rate stacked',  style=eval(style), data_gap=2)
-        analysis_kanji_development(
-            data, chart_type='rate default average', style=eval(style), data_gap=1)
-        analysis_kanji_development(
-            data, chart_type='rate stacked average', style=eval(style), data_gap=2)
+        style = eval(style)
     except (NameError, SyntaxError):
-        error('Invalid style name found. Aborting chart creation process.')
+        error('Invalid style name. \'DefaultStyle\' will be used instead.')
+        style = DefaultStyle
 
+    analysis_kanji_total(data, style=style, data_gap=10)
+    analysis_kanji_development(data, chart_type='total default', style=style, data_gap=20)
+    analysis_kanji_development(data, chart_type='total stacked', style=style, data_gap=50)
+    analysis_kanji_development(data, chart_type='rate default',  style=style, data_gap=1)
+    analysis_kanji_development(data, chart_type='rate stacked',  style=style, data_gap=2)
+    analysis_kanji_development(data, chart_type='rate default average', style=style, data_gap=1)
+    analysis_kanji_development(data, chart_type='rate stacked average', style=style, data_gap=2)
 
-def clean(data):
+def clean(data, duration=None, dynamic=False):
     ''' Function: Clean Data '''
-    def add_day_to_date(date_string, days): return (str(datetime.strptime(
-        date_string, '%Y-%m-%d') + timedelta(days=days)).split()[0])
-
     # Step 1 - Sort
     data.sort(key=lambda i: i[0])
 
@@ -62,27 +61,80 @@ def clean(data):
     data = [[i[0].split()[0]] + [j for j in i[1:]] for i in data]
 
     # Step 3 - Remove Date Duplications
-    data = [data[i] for i in range(
-        len(data) - 1) if data[i][0] != data[i + 1][0]] + [data[-1]]
+    data = [data[i] for i in range(len(data) - 1) if data[i][0] != data[i + 1][0]] + [data[-1]]
 
     # Step 4 - Add Missing Dates
+    if dynamic:
+        data = dynamic_fill(data)
+    else:
+        data = static_fill(data)
+
+    # Step 5 - Sort Again
+    data.sort(key=lambda i: i[0])
+
+    # Step 6 - Time Filtering
+    if duration != None and 0 < duration <= len(data):
+        data = data[-1 * duration:]
+
+    # Step 7 - Return
+    return data
+
+
+def add_day_to_date(date_string, days):
+    ''' Function: Add days to date '''
+    return str(datetime.strptime(date_string, '%Y-%m-%d') + timedelta(days=days)).split()[0]
+
+
+def static_fill(data):
+    ''' Function: Fill missing data statically '''
     missing_dates = list()
     start_date = data[0][0]
     end_date = data[-1][0]
 
     while start_date != end_date:
         if start_date not in [i[0] for i in data]:
-            select = [i for i in data if i[0] ==
-                      add_day_to_date(start_date, -1)][0]
+            select = [i for i in data if i[0] == add_day_to_date(start_date, -1)][0]
             missing_dates.append([start_date] + select[1:])
         start_date = add_day_to_date(start_date, 1)
         data += missing_dates
         missing_dates = []
+    
+    return data
 
-    # Step 5 - Sort Again
-    data.sort(key=lambda i: i[0])
 
-    # Step 6 - Return
+def dynamic_fill(data):
+    ''' Function: Fill missing data dynamically '''
+    missing_dates = [list()]
+    start_date = data[0][0]
+    end_date = data[-1][0]
+    
+    # Step 1: Determines missing dates
+    while start_date != end_date:
+        if start_date not in [i[0] for i in data]:
+            missing_dates[-1].append(start_date)
+        elif len(missing_dates[-1]) > 0:
+            missing_dates.append(list())
+        start_date = add_day_to_date(start_date, 1)
+    
+    if len(missing_dates[-1]) == 0:
+        missing_dates = missing_dates[:-1]
+
+    # Step 2: Pinpoint
+    for i in range(len(missing_dates)):
+        data_start = [j for j in data if j[0] == add_day_to_date(missing_dates[i][0], -1)][0]
+        data_end   = [j for j in data if j[0] == add_day_to_date(missing_dates[i][-1], 1)][0]
+
+        for j in range(len(missing_dates[i])):
+            missing_dates[i][j] = [missing_dates[i][j]]
+            for k in range(1, len(data_start)):
+                missing_dates[i][j].append(data_start[k] + int((j + 1)/(len(missing_dates[i]) + 1) * (data_end[k] - data_start[k])))
+
+    # Step 3: Append
+    for i in missing_dates:
+        for j in i:
+            data.append(j)
+    
+    # Step 4: Return
     return data
 
 
@@ -91,9 +143,8 @@ def analysis_kanji_total(data, style=DefaultStyle, data_gap=10):
     chart = pygal.Bar()
 
     # Chart Data
-    columns = 'N5', 'N4', 'N3', 'N2', 'N1', '-'
-    for i in range(len(columns)):
-        chart.add(columns[i], data[-1][i + 1])
+    for i in range(len(COLUMNS)):
+        chart.add(COLUMNS[i], data[-1][i + 1])
 
     # Chart Titles
     chart.title = 'Kanji Totals'
@@ -101,8 +152,7 @@ def analysis_kanji_total(data, style=DefaultStyle, data_gap=10):
     chart.y_title = 'Kanji Amount'
 
     # Chart Labels
-    chart.y_labels = range(
-        0, max([int(i) for i in data[-1][1:]]) + data_gap, data_gap)
+    chart.y_labels = range(0, max([int(i) for i in data[-1][1:]]) + data_gap, data_gap)
 
     # Chart Legends
     chart.legend_at_bottom = True
@@ -140,21 +190,18 @@ def analysis_kanji_development(data, chart_type='total default', style=DefaultSt
         chart = pygal.StackedLine()
 
     # Chart Data
-    columns = 'N5', 'N4', 'N3', 'N2', 'N1', '-'
     if 'total' in chart_type:
-        for i in range(len(columns)):
-            chart.add(columns[i], [j[i + 1] for j in data])
+        for i in range(len(COLUMNS)):
+            chart.add(COLUMNS[i], [j[i + 1] for j in data])
 
     elif 'rate' in chart_type:
-        data_rate = [[data[i][j] - data[i - 1][j]
-                      for i in range(1, len(data))] for j in range(1, 7)]
+        data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(COLUMNS) + 1)]
         if 'average' not in chart_type:
-            for i in range(len(columns)):
-                chart.add(columns[i], data_rate[i])
+            for i in range(len(COLUMNS)):
+                chart.add(COLUMNS[i], data_rate[i])
         else:
-            for i in range(len(columns)):
-                chart.add(columns[i], [average(data_rate[i][0:j + 1])
-                                       for j in range(len(data_rate[i]))])
+            for i in range(len(COLUMNS)):
+                chart.add(COLUMNS[i], [average(data_rate[i][0:j + 1])for j in range(len(data_rate[i]))])
 
     # Chart Titles
     chart.title = 'Kanji Development'
@@ -164,8 +211,7 @@ def analysis_kanji_development(data, chart_type='total default', style=DefaultSt
     if 'stacked' in chart_type:
         chart.title += ' (Stacked)'
     if 'average' in chart_type:
-        chart.title = chart.title.replace(
-            'Kanji Development', 'Kanji Average Development')
+        chart.title = chart.title.replace('Kanji Development', 'Kanji Average Development')
 
     chart.x_title = 'Date'
     chart.y_title = 'Kanji Amount'
@@ -176,38 +222,28 @@ def analysis_kanji_development(data, chart_type='total default', style=DefaultSt
     elif 'rate' in chart_type:
         chart.x_labels = [i[0] for i in data[1:]]
     chart.x_label_rotation = 20
-    chart.x_labels_major_count = 7
+    chart.x_labels_major_every = len(data) // 7 + (len(data) < 7)
     chart.truncate_label = -1
     chart.show_minor_x_labels = False
 
     if chart_type == 'total default':
-        chart.y_labels = range(
-            0, max([i for i in data[-1][1:]]) + data_gap, data_gap)
+        data_max = max([i for i in data[-1][1:]])
     elif chart_type == 'total stacked':
-        chart.y_labels = range(
-            0, sum([i for i in data[-1][1:]]) + data_gap, data_gap)
+        data_max = sum([i for i in data[-1][1:]])
     elif chart_type == 'rate default':
-        chart.y_labels = range(0, max([max([data[i][j] - data[i - 1][j] for i in range(
-            1, len(data))]) for j in range(1, 7)]) + data_gap, data_gap)
+        data_max = max([max([data[i][j] - data[i - 1][j] for i in range(1, len(data))]) for j in range(1, len(COLUMNS) + 1)])
     elif chart_type == 'rate stacked':
-        data_rate = [[data[i][j] - data[i - 1][j]
-                      for i in range(1, len(data))] for j in range(1, 7)]
-        chart.y_labels = range(0, max([sum([data_rate[i][j] for i in range(
-            len(data_rate))]) for j in range(len(data_rate[0]))]) + data_gap, data_gap)
+        data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(COLUMNS) + 1)]
+        data_max = max([sum([data_rate[i][j] for i in range(len(data_rate))]) for j in range(len(data_rate[0]))])
     elif chart_type == 'rate default average':
-        data_rate = [[data[i][j] - data[i - 1][j]
-                      for i in range(1, len(data))] for j in range(1, 7)]
-        data_average = [[average(data_rate[j][0:i + 1])
-                         for i in range(len(data_rate[0]))] for j in range(len(data_rate))]
-        chart.y_labels = range(
-            0, ceil(max([max(i) for i in data_average])) + data_gap, data_gap)
+        data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(COLUMNS) + 1)]
+        data_average = [[average(data_rate[j][0:i + 1]) for i in range(len(data_rate[0]))] for j in range(len(data_rate))]
+        data_max = ceil(max([max(i) for i in data_average]))
     elif chart_type == 'rate stacked average':
-        data_rate = [[data[i][j] - data[i - 1][j]
-                      for i in range(1, len(data))] for j in range(1, 7)]
-        data_average = [[average(data_rate[j][0:i + 1])
-                         for i in range(len(data_rate[0]))] for j in range(len(data_rate))]
-        chart.y_labels = range(0, ceil(max([sum([data_average[i][j] for i in range(
-            len(data_average))]) for j in range(len(data_average[0]))])) + data_gap, data_gap)
+        data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(COLUMNS) + 1)]
+        data_average = [[average(data_rate[j][0:i + 1]) for i in range(len(data_rate[0]))] for j in range(len(data_rate))]
+        data_max = ceil(max([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
+    chart.y_labels = range(0, data_max + data_gap, data_gap)
 
     # Chart Legends
     chart.legend_at_bottom = True

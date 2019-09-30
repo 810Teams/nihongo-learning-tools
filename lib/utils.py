@@ -3,19 +3,22 @@
 '''
 
 
-def error(message):
+def error(message, show=True):
     ''' Display error message '''
-    print('[ERROR]', message)
+    if show:
+        print('[ERROR]', message)
 
 
-def log(message):
+def log(message, show=True):
     ''' Display log message '''
-    print('[LOG]', message)
+    if show:
+        print('[LOG]', message)
 
 
-def notice(message):
+def notice(message, show=True):
     ''' Display notice message '''
-    print('[NOTICE]', message)
+    if show:
+        print('[NOTICE]', message)
 
 
 def kanji_calculate(current_page, current_line):

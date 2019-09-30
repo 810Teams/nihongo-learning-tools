@@ -16,38 +16,29 @@ class Storage:
     def append(self, data, show_notice=True):
         ''' User Method: Append Data '''
         time = str(datetime.now())
-        self.storage = self.storage.append(pandas.DataFrame(
-            [[time[0:len(time)-7]] + data], columns=list(self.storage.columns)))
+        self.storage = self.storage.append(pandas.DataFrame([[time[0:len(time)-7]] + data], columns=list(self.storage.columns)))
 
-        if show_notice:
-            notice('Data {} has been added to the storage.'.format(data))
+        notice('Data {} has been added to the storage.'.format(data), show=show_notice)
 
     def load(self, show_notice=True, template=None):
         ''' Indirect User Method: Load Storage '''
         try:
             self.storage = pandas.read_csv('data/' + self.name + '.csv')
         except FileNotFoundError:
-            if show_notice:
-                notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(
-                    self.name))
+            notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(self.name), show=show_notice)
 
             if template == 'jlpt':
-                if show_notice:
-                    notice('Storage \'{}\' has been set up by JLPT template.'.format(self.name))
+                notice('Storage \'{}\' has been set up by JLPT template.'.format(self.name), show=show_notice)
                 Storage.setup(self, ['n5', 'n4', 'n3', 'n2', 'n1', '-'])
             else:
-                if show_notice:
-                    notice(
-                        'Please input names of columns, separate values using commas.')
-                Storage.setup(self, [i.strip()
-                                     for i in input('(Input) ').split(',')])
+                notice('Please input names of columns, separate values using commas.', show=show_notice)
+                Storage.setup(self, [i.strip()for i in input('(Input) ').split(',')])
 
     def reload(self, show_notice=True):
         ''' Indirect User Method: Reload Storage '''
         try:
             self.storage = pandas.read_csv('data/' + self.name + '.csv')
-            if show_notice:
-                notice('Storage \'{}\' is reloaded.'.format(self.name))
+            notice('Storage \'{}\' is reloaded.'.format(self.name), show=show_notice)
         except FileNotFoundError:
             self.load()
 
@@ -57,22 +48,17 @@ class Storage:
             os.remove(self.name + '.csv')
         except FileNotFoundError:
             pass
-        self.storage.to_csv('data/' + self.name + '.csv',
-                            index=None, header=True)
+        self.storage.to_csv('data/' + self.name + '.csv', index=None, header=True)
 
-        if show_notice:
-            notice('Storage \'{}\' saved successfully.'.format(self.name))
-
+        notice('Storage \'{}\' saved successfully.'.format(self.name), show=show_notice)
         self.reload(show_notice=False)
 
     def setup(self, columns, show_notice=True):
         ''' System Method: View Storage '''
         try:
-            self.storage = pandas.DataFrame(
-                [], columns=['timestamp'] + columns)
+            self.storage = pandas.DataFrame([], columns=['timestamp'] + columns)
         except:
-            if show_notice:
-                error('Something unexpected happened. Please try again.')
+            error('Something unexpected happened. Please try again.', show=show_notice)
 
     def view(self):
         ''' User Method: View Storage '''
