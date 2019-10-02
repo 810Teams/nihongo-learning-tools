@@ -8,6 +8,8 @@ from lib.storage import Storage
 from lib.utils import error, kanji_calculate, notice
 
 import os
+import numpy
+import pandas
 
 
 class Operation:
@@ -31,7 +33,19 @@ class Argument:
 
 def operate_a(storage_main, args):
     ''' Function: Operation Code 'A' (Add Data) '''
-    if '-k' in args:
+    if '-a' in args:
+        notice('Please input increasing data in a,b,c format.')
+        print()
+        temp = input('(Input) ')
+        print()
+
+        try:
+            temp = [int(i.replace(' ', ''))for i in temp.split(',')]
+            initial = storage_main.tolist()[-1][1:]
+            storage_main.append([int(initial[i]) + temp[i] for i in range(len(initial))])
+        except ValueError:
+            error('Invalid value format. Please try again.')
+    elif '-k' in args:
         notice('Please input kanji data in a x,b y,c z format.')
         print()
         temp = input('(Input) ')

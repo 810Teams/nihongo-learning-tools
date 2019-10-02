@@ -9,10 +9,11 @@ from lib.utils import error, notice
 import numpy
 
 AUTHOR = '810Teams'
-VERSION = 'b1.1.0'
+VERSION = 'b1.2.0'
 OPERATIONS = [
     Operation('A', 'Append Data', [
-        Argument('-k', 'kanji notability list')
+        Argument('-a', 'add mode'),
+        Argument('-k', 'kanji notability mode')
     ]),
     Operation('C', 'Create Charts', [
         Argument('-d <days>', 'duration'),
@@ -62,7 +63,6 @@ def start_operating(storage_main):
 
         for i in OPERATIONS:
             print('[{}] {}'.format(i.code, i.title))
-
             for j in i.args:
                 print('    {}{}: {}'.format(j.code, ' ' * (max([len(k.code) for k in i.args]) - len(j.code) + 1), j.description))
 

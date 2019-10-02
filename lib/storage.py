@@ -5,6 +5,7 @@
 from datetime import datetime
 from lib.utils import error, notice
 import os
+import numpy
 import pandas
 
 
@@ -59,6 +60,10 @@ class Storage:
             self.storage = pandas.DataFrame([], columns=['timestamp'] + columns)
         except:
             error('Something unexpected happened. Please try again.', show=show_notice)
+
+    def tolist(self):
+        ''' System Method: Returns a list of storage data '''
+        return numpy.array(self.storage).tolist()
 
     def view(self):
         ''' User Method: View Storage '''
