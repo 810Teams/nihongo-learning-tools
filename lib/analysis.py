@@ -59,6 +59,7 @@ def analysis(df, duration=None, dynamic=False, style='DefaultStyle', max_y_label
     analysis_kanji_development(data, chart_type='rate stacked average', style=style, max_y_labels=max_y_labels)
     notice('Total time spent rendering charts is {} seconds.'.format(round(perf_counter() - time_start, 2)))
 
+
 def clean(data, duration=None, dynamic=False):
     ''' Function: Clean Data '''
     # Step 1 - Sort
@@ -167,7 +168,7 @@ def analysis_kanji_total(data, style=DefaultStyle, max_y_labels=15):
     chart.y_title = 'Kanji Amount'
 
     # Chart Labels
-    chart.y_labels = calculate_y_labels(max([int(i) for i in data[-1][1:]]))
+    chart.y_labels = calculate_y_labels(max([int(i) for i in data[-1][1:]]), max_y_labels=max_y_labels)
 
     # Chart Legends
     chart.legend_at_bottom = True
@@ -258,7 +259,7 @@ def analysis_kanji_development(data, chart_type='total default', style=DefaultSt
         data_average = [[average(data_rate[j][0:i + 1]) for i in range(len(data_rate[0]))] for j in range(len(data_rate))]
         data_max = ceil(max([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
 
-    chart.y_labels = calculate_y_labels(data_max)
+    chart.y_labels = calculate_y_labels(data_max, max_y_labels=max_y_labels)
 
     # Chart Legends
     chart.legend_at_bottom = True
@@ -298,21 +299,21 @@ def analysis_kanji_development(data, chart_type='total default', style=DefaultSt
     notice('Chart \'{}\' successfully exported.'.format(file_name))
 
 
-def calculate_y_labels(data_max, max_label_count=15):
+def calculate_y_labels(data_max, max_y_labels=15):
     ''' Function: Calculate '''
     preset = [1, 2, 5]
     data_range = range(0, data_max + 1, 1)
     i = 0
 
-    while len(data_range) > max_label_count:
+    while len(data_range) > max_y_labels:
         data_range = range(0, data_max + preset[i % 3] * 10**(i // 3), preset[i % 3] * 10**(i // 3))
         i += 1
 
     data_range = list(data_range)
 
-    if data_range[1] - data_range[0] == 1 and len(data_range)*2 - 1 < max_label_count:
+    if data_range[1] - data_range[0] == 1 and len(data_range)*2 - 1 < max_y_labels:
         data_range = sorted(data_range + [i + 0.5 for i in data_range if i + 0.5 <= data_max])
-    if data_range[1] - data_range[0] == 0.5 and len(data_range)*2 - 1 < max_label_count:
+    if data_range[1] - data_range[0] == 0.5 and len(data_range)*2 - 1 < max_y_labels:
         data_range = sorted(data_range + [i + 0.25 for i in data_range if i + 0.25 <= data_max])  
 
     return data_range

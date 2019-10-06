@@ -80,7 +80,7 @@ def operate_c(storage_main, args):
 
     # Step 2: -max-y argument
     try:
-        max_y_labels = args[args.index('-max-y') + 1]
+        max_y_labels = int(args[args.index('-max-y') + 1])
     except (IndexError, ValueError):
         max_y_labels = None
     
