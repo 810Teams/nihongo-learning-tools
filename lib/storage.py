@@ -30,9 +30,10 @@ class Storage:
 
             if template == 'jlpt':
                 notice('Storage \'{}\' has been set up by JLPT template.'.format(self.name), show=show_notice)
-                Storage.setup(self, ['n5', 'n4', 'n3', 'n2', 'n1', '-'])
+                Storage.setup(self, ['N5', 'N4', 'N3', 'N2', 'N1', '-'])
             else:
                 notice('Please input names of columns, separate values using commas.', show=show_notice)
+                print()
                 Storage.setup(self, [i.strip()for i in input('(Input) ').split(',')])
 
     def reload(self, show_notice=True):
@@ -61,9 +62,19 @@ class Storage:
         except:
             error('Something unexpected happened. Please try again.', show=show_notice)
 
-    def tolist(self):
+    def to_list(self):
         ''' System Method: Returns a list of storage data '''
         return numpy.array(self.storage).tolist()
+
+    def try_load(self):
+        ''' System Method: Try loading a storage '''
+        try:
+            if self.storage == None:
+                self.storage = pandas.read_csv('data/' + self.name + '.csv')
+                self.storage = None
+            return True
+        except FileNotFoundError:
+            return False
 
     def view(self):
         ''' User Method: View Storage '''

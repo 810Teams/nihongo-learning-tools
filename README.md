@@ -20,35 +20,31 @@ pip3 install pandas
 pip3 install pygal
 ```
 
-## Running Scripts
-
-If you have already known how to run Shell scripts and Python via Terminal, you can skip this part. If not, please read the following.
-
-### Shell Script
-
-Running Shell script has 2 methods. First, changing directories to where the application folder is, then type this into the Terminal. Assuming `run.sh` is the Shell script file name.
-```
-./run.sh
-```
-Another method is dragging `run.sh` into your Terminal and press the ENTER key directly.
-
-### Python
-
-Running python has 2 methods. First, changing directories to where the application folder is, then type this into the Terminal. Assuming `main.py` is the Python file name.
-```
-python3 main.py
-```
-Another method is typing `python3 ` into in Terminal first, then drag `main.py` into your Terminal and press the ENTER key.
-
 ## Setting Up
 
-When running the application for the first time, run `setup.sh` in your Terminal first. This will generates files and directories to make the application runs normally.
+When running the application for the first time, follow these steps.
+1. Open Terminal.
+2. Change directory to the application folder.
+3. Run `setup.sh` in your Terminal.
 
-Generated files and directories include `charts`, `data`, `DEFAULT_STORAGE.txt` and `DEFAULT_STYLE.txt`. Make sure they are all generated. If not, try running the script again, or contact the developer if you think this is a bug.
+Running `setup.sh` will generates files and directories to make the application runs normally. Generated files and directories include `charts`, `data`, `DEFAULT_STORAGE.txt` and `DEFAULT_STYLE.txt`. Make sure they are all generated. If not, try running the script again, or contact the developer if you think this is a bug.
 
 ## Using an Application
 
-Running application has 2 methods. First, runs the shell script file called `run.sh` in the Terminal or else, runs `main.py` with Python directly. Running methods can be read at the section <a href="#running-scripts">Running Scripts</a>.
+1. Open Terminal.
+2. Change directory to the application folder.
+3. Run `run.sh` or `main.py` directly with Python.
+
+If you are familiar with Shell script, you can put the application folder anywhere you want. Then create a Shell script file in a place where you can reach easily, like your Desktop. This shell script could includes the following.
+
+```sh
+cd <APPLICATION_FOLDER_PATH>
+sudo chmod 755 run.sh
+./run.sh
+```
+
+For full user manual guide, please read [HELP.md](HELP.md) included in the application folder.
 
 ## Notes
+
 This application was originally made for personal use, I cannot guarantee anything.

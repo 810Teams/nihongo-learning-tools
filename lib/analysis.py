@@ -4,9 +4,6 @@
 
 from datetime import datetime
 from datetime import timedelta
-import numpy
-import pandas
-import pygal
 from math import ceil
 from pygal.style import DefaultStyle
 from pygal.style import DarkStyle
@@ -23,14 +20,23 @@ from pygal.style import LightGreenStyle
 from pygal.style import DarkGreenStyle
 from pygal.style import DarkGreenBlueStyle
 from pygal.style import BlueStyle
-from lib.utils import error, notice, average
+from lib.exceptions import OutOfRangeChartDurationError
+from lib.utils import error
+from lib.utils import notice
+from lib.utils import average
 from time import perf_counter
+
+import numpy
+import pandas
+import pygal
 
 COLUMNS = list()
 
 
-def analysis(df, duration=None, dynamic=False, style='DefaultStyle'):
+def analysis(df, duration=None, dynamic=False, style='DefaultStyle', max_y_labels=15):
     ''' Function: Analysis '''
+    time_start = perf_counter()
+
     global COLUMNS
     COLUMNS = df.columns[1:]
 
@@ -43,14 +49,15 @@ def analysis(df, duration=None, dynamic=False, style='DefaultStyle'):
     except (NameError, SyntaxError):
         error('Invalid style name. \'DefaultStyle\' will be used instead.')
         style = DefaultStyle
-
-    analysis_kanji_total(data, style=style, data_gap=10)
-    analysis_kanji_development(data, chart_type='total default', style=style, data_gap=20)
-    analysis_kanji_development(data, chart_type='total stacked', style=style, data_gap=50)
-    analysis_kanji_development(data, chart_type='rate default',  style=style, data_gap=1)
-    analysis_kanji_development(data, chart_type='rate stacked',  style=style, data_gap=2)
-    analysis_kanji_development(data, chart_type='rate default average', style=style, data_gap=1)
-    analysis_kanji_development(data, chart_type='rate stacked average', style=style, data_gap=2)
+    
+    analysis_kanji_total(data, style=style, max_y_labels=max_y_labels)
+    analysis_kanji_development(data, chart_type='total default', style=style, max_y_labels=max_y_labels)
+    analysis_kanji_development(data, chart_type='total stacked', style=style, max_y_labels=max_y_labels)
+    analysis_kanji_development(data, chart_type='rate default',  style=style, max_y_labels=max_y_labels)
+    analysis_kanji_development(data, chart_type='rate stacked',  style=style, max_y_labels=max_y_labels)
+    analysis_kanji_development(data, chart_type='rate default average', style=style, max_y_labels=max_y_labels)
+    analysis_kanji_development(data, chart_type='rate stacked average', style=style, max_y_labels=max_y_labels)
+    notice('Total time spent rendering charts is {} seconds.'.format(round(perf_counter() - time_start, 2)))
 
 def clean(data, duration=None, dynamic=False):
     ''' Function: Clean Data '''
@@ -73,8 +80,13 @@ def clean(data, duration=None, dynamic=False):
     data.sort(key=lambda i: i[0])
 
     # Step 6 - Time Filtering
-    if duration != None and 0 < duration <= len(data):
-        data = data[-1 * duration:]
+    if duration != None:
+        if 1 < duration <= len(data):
+            data = data[-1 * duration:]
+        else:
+            error('Duration must be at least 2 days and not exceeding the data size ({}).'.format(len(data)))
+            error('Aborting chart creation process.')
+            raise OutOfRangeChartDurationError
 
     # Step 7 - Return
     return data
@@ -138,7 +150,7 @@ def dynamic_fill(data):
     return data
 
 
-def analysis_kanji_total(data, style=DefaultStyle, data_gap=10):
+def analysis_kanji_total(data, style=DefaultStyle, max_y_labels=15):
     ''' Function: Kanji Total Analysis '''
     chart = pygal.Bar()
 
@@ -152,7 +164,7 @@ def analysis_kanji_total(data, style=DefaultStyle, data_gap=10):
     chart.y_title = 'Kanji Amount'
 
     # Chart Labels
-    chart.y_labels = range(0, max([int(i) for i in data[-1][1:]]) + data_gap, data_gap)
+    chart.y_labels = calculate_y_labels(max([int(i) for i in data[-1][1:]]))
 
     # Chart Legends
     chart.legend_at_bottom = True
@@ -167,7 +179,7 @@ def analysis_kanji_total(data, style=DefaultStyle, data_gap=10):
     notice('Chart \'kanji_total\' successfully exported.')
 
 
-def analysis_kanji_development(data, chart_type='total default', style=DefaultStyle, data_gap=25):
+def analysis_kanji_development(data, chart_type='total default', style=DefaultStyle, max_y_labels=15):
     ''' Function: Kanji Development Analysis '''
     # Chart Type Check
     chart_types = {
@@ -193,7 +205,6 @@ def analysis_kanji_development(data, chart_type='total default', style=DefaultSt
     if 'total' in chart_type:
         for i in range(len(COLUMNS)):
             chart.add(COLUMNS[i], [j[i + 1] for j in data])
-
     elif 'rate' in chart_type:
         data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(COLUMNS) + 1)]
         if 'average' not in chart_type:
@@ -201,7 +212,7 @@ def analysis_kanji_development(data, chart_type='total default', style=DefaultSt
                 chart.add(COLUMNS[i], data_rate[i])
         else:
             for i in range(len(COLUMNS)):
-                chart.add(COLUMNS[i], [average(data_rate[i][0:j + 1])for j in range(len(data_rate[i]))])
+                chart.add(COLUMNS[i], [round(average(data_rate[i][0:j + 1]), 4) for j in range(len(data_rate[i]))])
 
     # Chart Titles
     chart.title = 'Kanji Development'
@@ -243,7 +254,8 @@ def analysis_kanji_development(data, chart_type='total default', style=DefaultSt
         data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(COLUMNS) + 1)]
         data_average = [[average(data_rate[j][0:i + 1]) for i in range(len(data_rate[0]))] for j in range(len(data_rate))]
         data_max = ceil(max([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
-    chart.y_labels = range(0, data_max + data_gap, data_gap)
+
+    chart.y_labels = calculate_y_labels(data_max)
 
     # Chart Legends
     chart.legend_at_bottom = True
@@ -281,3 +293,23 @@ def analysis_kanji_development(data, chart_type='total default', style=DefaultSt
 
     # Notice
     notice('Chart \'{}\' successfully exported.'.format(file_name))
+
+
+def calculate_y_labels(data_max, max_label_count=15):
+    ''' Function: Calculate '''
+    preset = [1, 2, 5]
+    data_range = range(0, data_max + 1, 1)
+    i = 0
+
+    while len(data_range) > max_label_count:
+        data_range = range(0, data_max + preset[i % 3] * 10**(i // 3), preset[i % 3] * 10**(i // 3))
+        i += 1
+
+    data_range = list(data_range)
+
+    if data_range[1] - data_range[0] == 1 and len(data_range)*2 - 1 < max_label_count:
+        data_range = sorted(data_range + [i + 0.5 for i in data_range if i + 0.5 <= data_max])
+    if data_range[1] - data_range[0] == 0.5 and len(data_range)*2 - 1 < max_label_count:
+        data_range = sorted(data_range + [i + 0.25 for i in data_range if i + 0.25 <= data_max])  
+
+    return data_range

@@ -3,28 +3,41 @@
 '''
 
 from lib.loaders import load_default_storage
-from lib.operations import Operation, Argument, operate_a, operate_c, operate_r, operate_s, operate_v, operate_x
+from lib.operations import Operation
+from lib.operations import Argument
+from lib.operations import operate_a
+from lib.operations import operate_c
+from lib.operations import operate_h
+from lib.operations import operate_r
+from lib.operations import operate_s
+from lib.operations import operate_v
+from lib.operations import operate_x
 from lib.storage import Storage
-from lib.utils import error, notice
+from lib.utils import error
+from lib.utils import notice
+
 import numpy
 
+APP_NAME = 'Kanji Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'b1.2.0'
+VERSION = 'b1.3.0'
 OPERATIONS = [
     Operation('A', 'Append Data', [
-        Argument('-a', 'add mode'),
-        Argument('-k', 'kanji notability mode')
+        Argument('-add', 'Add mode'),
+        Argument('-ntb', 'Notability mode')
     ]),
     Operation('C', 'Create Charts', [
-        Argument('-d <days>', 'duration'),
-        Argument('-dy', 'dynamic fill'),
-        Argument('-o', 'open'),
-        Argument('-s <style_name>', 'style')
+        Argument('-days INTEGER', 'Duration'),
+        Argument('-max-y INTEGER', 'Maximum y-labels'),
+        Argument('-style STYLE_NAME', 'Style'),
+        Argument('-dynamic', 'Dynamic fill'),
+        Argument('-open', 'Open')
     ]),
+    Operation('H', 'Help', []),
     Operation('R', 'Reload Storage', []),
     Operation('S', 'Save Storage', []),
     Operation('V', 'View Storage', [
-        Argument('-o', 'open')
+        Argument('-open', 'Open')
     ]),
     Operation('X', 'Exit Application', []),
 ]
@@ -35,23 +48,24 @@ def main():
     show_app_title()
 
     if load_default_storage():
-        notice('File \'DEFAULT_STORAGE.txt\' is found. Now proceeding to storage loading.')
-        storage_main = Storage(load_default_storage())
-        notice('Storage \'{}\' is loaded.'.format(storage_main.name))
+        storage_main = Storage(load_default_storage()) 
     else:
         notice('Please Input Storage Name')
         storage_main = Storage(input('(Input) ').strip())
         print()
-
-    storage_main.load(template='jlpt')
+    
+    if storage_main.try_load():
+        notice('File \'DEFAULT_STORAGE.txt\' is found. Now proceeding to storage loading.')
+        notice('Storage \'{}\' is loaded.'.format(storage_main.name))
+    storage_main.load()
     start_operating(storage_main)
 
 
 def show_app_title():
     ''' Function: Show application title '''
     print()
-    print('- Personal Kanji Tracker App -')
-    print(('by {} ({})'.format(AUTHOR, VERSION)).center(28))
+    print('- {} -'.format(APP_NAME))
+    print(('by {} ({})'.format(AUTHOR, VERSION)).center(len(APP_NAME)))
     print()
 
 
@@ -77,7 +91,7 @@ def start_operating(storage_main):
 
 
 def operate(storage_main, action, args):
-    ''' Function: Operate a specific action '''    
+    ''' Function: Operate a specific action '''
     try:
         eval('operate_{}(storage_main, args)'.format(action.lower()))
     except (NameError, SyntaxError):

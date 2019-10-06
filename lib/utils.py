@@ -6,13 +6,13 @@
 def error(message, show=True):
     ''' Display error message '''
     if show:
-        print('[ERROR]', message)
+        print('[ERROR] ', message)
 
 
 def log(message, show=True):
     ''' Display log message '''
     if show:
-        print('[LOG]', message)
+        print('[LOG]    ', message)
 
 
 def notice(message, show=True):
