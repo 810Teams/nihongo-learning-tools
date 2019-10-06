@@ -20,7 +20,7 @@ import numpy
 
 APP_NAME = 'Kanji Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'b1.3.0'
+VERSION = 'b1.3.1'
 OPERATIONS = [
     Operation('A', 'Append Data', [
         Argument('-add', 'Add mode'),
@@ -55,7 +55,7 @@ def main():
         print()
     
     if storage_main.try_load():
-        notice('File \'DEFAULT_STORAGE.txt\' is found. Now proceeding to storage loading.')
+        notice('File \'DEFAULT_STORAGE.txt\' is found. Proceeding to storage loading.')
         notice('Storage \'{}\' is loaded.'.format(storage_main.name))
     storage_main.load()
     start_operating(storage_main)
@@ -73,7 +73,7 @@ def start_operating(storage_main):
     ''' Function: Start operating application '''
     while True:
         print()
-        print('- Action List -')
+        print('- Operation List -')
 
         for i in OPERATIONS:
             print('[{}] {}'.format(i.code, i.title))

@@ -81,10 +81,13 @@ def clean(data, duration=None, dynamic=False):
 
     # Step 6 - Time Filtering
     if duration != None:
-        if 1 < duration <= len(data):
+        if 2 <= duration <= len(data):
+            data = data[-1 * duration:]
+        elif -len(data) + 2 <= duration <= 0:
             data = data[-1 * duration:]
         else:
-            error('Duration must be at least 2 days and not exceeding the data size ({}).'.format(len(data)))
+            error('According to the data size of {}.'.format(len(data)))
+            error('Duration must be an integer from {} to {}, and not 1.'.format(-len(data) + 2, len(data)))
             error('Aborting chart creation process.')
             raise OutOfRangeChartDurationError
 
