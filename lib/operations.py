@@ -82,7 +82,7 @@ def operate_c(storage_main, args):
     try:
         max_y_labels = int(args[args.index('-max-y') + 1])
     except (IndexError, ValueError):
-        max_y_labels = None
+        max_y_labels = 15
     
     # Step 3: -style argument
     try:
