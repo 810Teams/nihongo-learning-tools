@@ -5,7 +5,6 @@
 from lib.analysis import analysis
 from lib.loaders import load_default_style
 from lib.storage import Storage
-from lib.exceptions import OutOfRangeChartDurationError
 from lib.utils import error
 from lib.utils import kanji_calculate
 from lib.utils import notice
@@ -13,6 +12,24 @@ from lib.utils import notice
 import os
 import numpy
 import pandas
+
+STYLES = [
+    'DefaultStyle',
+    'DarkStyle',
+    'NeonStyle',
+    'DarkSolarizedStyle',
+    'LightSolarizedStyle',
+    'LightStyle',
+    'CleanStyle',
+    'RedBlueStyle',
+    'DarkColorizedStyle',
+    'LightColorizedStyle',
+    'TurquoiseStyle',
+    'LightGreenStyle',
+    'DarkGreenStyle',
+    'DarkGreenBlueStyle',
+    'BlueStyle'
+]
 
 
 class Operation:
@@ -73,33 +90,72 @@ def operate_a(storage_main, args):
 def operate_c(storage_main, args):
     ''' Function: Operation Code 'C' (Create Charts) '''
     # Step 1: -days argument
-    try:
-        duration = int(args[args.index('-days') + 1])
-    except (IndexError, ValueError):
-        duration = None
+    if '-days' in args:
+        # Step 1.1 - Test for valid format
+        try:
+            duration = int(args[args.index('-days') + 1])
+        except (IndexError, ValueError):
+            error('Duration must be an integer.')
+            error('Aborting chart creation process.')
+            return
+        
+        # Step 1.2 - Test for valid requirements
+        if not (isinstance(duration, int) and -len(storage_main.storage) + 2 <= duration <= len(storage_main.storage) and duration != 1):
+            error('Duration must be an integer between {} and {}, and not 1.'.format(-len(storage_main.storage) + 2, len(storage_main.storage)))
+            error('Aborting chart creation process.')
+            return
+    else:
+        duration = 0
 
     # Step 2: -max-y argument
-    try:
-        max_y_labels = int(args[args.index('-max-y') + 1])
-    except (IndexError, ValueError):
+    if '-max-y' in args:
+        # Step 2.1 - Test for valid format
+        try:
+            max_y_labels = int(args[args.index('-max-y') + 1])
+        except (IndexError, ValueError):
+            error('Maximum y labels must be an integer.')
+            error('Aborting chart creation process.')
+            return
+        
+        # Step 2.2 - Test for valid requirements
+        if not (max_y_labels >= 2):
+            error('Maximum y labels must be an integer at least 2.')
+            error('Aborting chart creation process.')
+            return
+    else:
         max_y_labels = 15
     
     # Step 3: -style argument
-    try:
-        style = args[args.index('-style') + 1]
-    except (IndexError, ValueError):
-        if load_default_style():
-            notice('File \'DEFAULT_STYLE.txt\' is found. Now proceeding to chart creation.')
-            notice('Style \'{}\' will be used in chart creation.'.format(load_default_style()))
-            style = load_default_style()
-        else:
-            style = 'DefaultStyle'
+    if '-style' in args:
+        # Step 3.1.1 - Test for valid format
+        try:
+            style = args[args.index('-style') + 1]
+        except (IndexError, ValueError):
+            error('Invalid style.')
+            error('Aborting chart creation process.')
+            return
+
+        # Step 3.1.2 - Test for valid requirements
+        if style not in STYLES:
+            error('Invalid style.')
+            error('Aborting chart creation process.')
+            return
+    elif load_default_style():
+        style = load_default_style().strip()
+
+        # Step 3.2.1 - Test for valid requirements
+        if style not in STYLES:
+            error('Invalid style found in \'DEFAULT_STYLE.txt\'.')
+            error('Aborting chart creation process.')
+            return
+
+        notice('File \'DEFAULT_STYLE.txt\' is found. Now proceeding to chart creation.')
+        notice('Style \'{}\' will be used in chart creation.'.format(style))
+    else:
+        style = 'DefaultStyle'
 
     # Step 4: Render charts
-    try:
-        analysis(storage_main.storage, duration=duration, max_y_labels=max_y_labels, style=style, dynamic=('-dynamic' in args))
-    except OutOfRangeChartDurationError:
-        pass
+    analysis(storage_main.storage, duration=duration, max_y_labels=max_y_labels, style=style, dynamic=('-dynamic' in args))
 
     # Step 5: -open argument
     if '-open' in args:

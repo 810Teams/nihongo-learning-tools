@@ -20,7 +20,7 @@ import numpy
 
 APP_NAME = 'Kanji Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'b1.3.3'
+VERSION = 'b1.3.4'
 OPERATIONS = [
     Operation('A', 'Append Data', [
         Argument('-add', 'Add mode'),

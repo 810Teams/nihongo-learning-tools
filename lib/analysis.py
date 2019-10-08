@@ -20,7 +20,6 @@ from pygal.style import LightGreenStyle
 from pygal.style import DarkGreenStyle
 from pygal.style import DarkGreenBlueStyle
 from pygal.style import BlueStyle
-from lib.exceptions import OutOfRangeChartDurationError
 from lib.utils import error
 from lib.utils import notice
 from lib.utils import average
@@ -33,7 +32,7 @@ import pygal
 COLUMNS = list()
 
 
-def analysis(df, duration=None, dynamic=False, style='DefaultStyle', max_y_labels=15):
+def analysis(df, duration=0, dynamic=False, style='DefaultStyle', max_y_labels=15):
     ''' Function: Analysis '''
     time_start = perf_counter()
 
@@ -60,7 +59,7 @@ def analysis(df, duration=None, dynamic=False, style='DefaultStyle', max_y_label
     notice('Total time spent rendering charts is {} seconds.'.format(round(perf_counter() - time_start, 2)))
 
 
-def clean(data, duration=None, dynamic=False):
+def clean(data, duration=0, dynamic=False):
     ''' Function: Clean Data '''
     # Step 1 - Sort
     data.sort(key=lambda i: i[0])
@@ -81,16 +80,7 @@ def clean(data, duration=None, dynamic=False):
     data.sort(key=lambda i: i[0])
 
     # Step 6 - Time Filtering
-    if duration != None:
-        if 2 <= duration <= len(data):
-            data = data[-1 * duration:]
-        elif -len(data) + 2 <= duration <= 0:
-            data = data[-1 * duration:]
-        else:
-            error('According to the data size of {}.'.format(len(data)))
-            error('Duration must be an integer from {} to {}, and not 1.'.format(-len(data) + 2, len(data)))
-            error('Aborting chart creation process.')
-            raise OutOfRangeChartDurationError
+    data = data[-1 * duration:]
 
     # Step 7 - Return
     return data
