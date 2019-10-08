@@ -2,18 +2,18 @@
     `operations.py`
 '''
 
-from lib.analysis import analysis
-from lib.loaders import load_default_style
-from lib.storage import Storage
-from lib.utils import error
-from lib.utils import kanji_calculate
-from lib.utils import notice
+from src.analysis import analysis
+from src.loaders import load_default_style
+from src.storage import Storage
+from src.utils import error
+from src.utils import kanji_calculate
+from src.utils import notice
 
 import os
 import numpy
 import pandas
 
-STYLES = [
+STYLES = (
     'DefaultStyle',
     'DarkStyle',
     'NeonStyle',
@@ -29,7 +29,7 @@ STYLES = [
     'DarkGreenStyle',
     'DarkGreenBlueStyle',
     'BlueStyle'
-]
+)
 
 
 class Operation:

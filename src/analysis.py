@@ -20,9 +20,9 @@ from pygal.style import LightGreenStyle
 from pygal.style import DarkGreenStyle
 from pygal.style import DarkGreenBlueStyle
 from pygal.style import BlueStyle
-from lib.utils import error
-from lib.utils import notice
-from lib.utils import average
+from src.utils import error
+from src.utils import notice
+from src.utils import average
 from time import perf_counter
 
 import numpy

@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-# lib/
+lib/
 lib64/
 parts/
 sdist/
@@ -111,6 +111,3 @@ charts/
 data/
 DEFAULT_STORAGE.txt
 DEFAULT_STYLE.txt
-
-# Personal Customs
-kanji_list.txt

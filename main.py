@@ -2,19 +2,19 @@
     `main.py`
 '''
 
-from lib.loaders import load_default_storage
-from lib.operations import Operation
-from lib.operations import Argument
-from lib.operations import operate_a
-from lib.operations import operate_c
-from lib.operations import operate_h
-from lib.operations import operate_r
-from lib.operations import operate_s
-from lib.operations import operate_v
-from lib.operations import operate_x
-from lib.storage import Storage
-from lib.utils import error
-from lib.utils import notice
+from src.loaders import load_default_storage
+from src.operations import Operation
+from src.operations import Argument
+from src.operations import operate_a
+from src.operations import operate_c
+from src.operations import operate_h
+from src.operations import operate_r
+from src.operations import operate_s
+from src.operations import operate_v
+from src.operations import operate_x
+from src.storage import Storage
+from src.utils import error
+from src.utils import notice
 
 import numpy
 
