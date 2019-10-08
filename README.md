@@ -1,18 +1,23 @@
 # Kanji Tracker
+
 Kanji Tracker application runs on Terminal.
 
 ## Download
+
 The application is available for download in the [Releases](https://github.com/810Teams/personal-kanji-tracker/releases) tab. If not available in the releases tab, [download zip](https://github.com/810Teams/personal-kanji-tracker/archive/master.zip) instead on the master branch.
 
 ## Compatibility
+
 This application was originally made for personal use and developed on Mac OS X, which is guaranteed to be compatible when runs on Mac OS X. Since this application runs on Terminal, Linux is probably compatible too. Lastly, running this application on Windows' cmd is not guaranteed to be compatible.
 
 ## Requirements
 
 ### Python
+
 This application requires your device to have Python installed, can be downloaded from [python.org/downloads](https://www.python.org/downloads/).
 
 ### Additional Python Libraries
+
 After having python installed, run these commands on Terminal.
 ```
 pip3 install numpy
