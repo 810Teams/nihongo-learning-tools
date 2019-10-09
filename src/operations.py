@@ -2,7 +2,7 @@
     `operations.py`
 '''
 
-from src.analysis import analysis
+from src.analysis import analysis, clean
 from src.loaders import load_default_style
 from src.storage import Storage
 from src.utils import error
@@ -89,27 +89,33 @@ def operate_a(storage_main, args):
 
 def operate_c(storage_main, args):
     ''' Function: Operation Code 'C' (Create Charts) '''
-    # Step 1: -days argument
+    # Step 1: -average argument
+    if '-average' in args:
+        # Test for valid format
+        try:
+            average_range = int(args[args.index('-average') + 1])
+        except (IndexError, ValueError):
+            error('Average range must be an integer.')
+            error('Aborting chart creation process.')
+            return
+    else:
+        average_range = None
+
+    # Step 2: -days argument
     if '-days' in args:
-        # Step 1.1 - Test for valid format
+        # Test for valid format
         try:
             duration = int(args[args.index('-days') + 1])
         except (IndexError, ValueError):
             error('Duration must be an integer.')
             error('Aborting chart creation process.')
             return
-        
-        # Step 1.2 - Test for valid requirements
-        if not (isinstance(duration, int) and -len(storage_main.storage) + 2 <= duration <= len(storage_main.storage) and duration != 1):
-            error('Duration must be an integer between {} and {}, and not 1.'.format(-len(storage_main.storage) + 2, len(storage_main.storage)))
-            error('Aborting chart creation process.')
-            return
     else:
         duration = 0
 
-    # Step 2: -max-y argument
+    # Step 3: -max-y argument
     if '-max-y' in args:
-        # Step 2.1 - Test for valid format
+        # Step 3.1 - Test for valid format
         try:
             max_y_labels = int(args[args.index('-max-y') + 1])
         except (IndexError, ValueError):
@@ -117,7 +123,7 @@ def operate_c(storage_main, args):
             error('Aborting chart creation process.')
             return
         
-        # Step 2.2 - Test for valid requirements
+        # Step 3.2 - Test for valid requirements
         if not (max_y_labels >= 2):
             error('Maximum y labels must be an integer at least 2.')
             error('Aborting chart creation process.')
@@ -125,9 +131,9 @@ def operate_c(storage_main, args):
     else:
         max_y_labels = 15
     
-    # Step 3: -style argument
+    # Step 4: -style argument
     if '-style' in args:
-        # Step 3.1.1 - Test for valid format
+        # Step 4.1.1 - Test for valid format
         try:
             style = args[args.index('-style') + 1]
         except (IndexError, ValueError):
@@ -135,7 +141,7 @@ def operate_c(storage_main, args):
             error('Aborting chart creation process.')
             return
 
-        # Step 3.1.2 - Test for valid requirements
+        # Step 4.1.2 - Test for valid requirements
         if style not in STYLES:
             error('Invalid style.')
             error('Aborting chart creation process.')
@@ -143,7 +149,7 @@ def operate_c(storage_main, args):
     elif load_default_style():
         style = load_default_style().strip()
 
-        # Step 3.2.1 - Test for valid requirements
+        # Step 4.2.1 - Test for valid requirements
         if style not in STYLES:
             error('Invalid style found in \'DEFAULT_STYLE.txt\'.')
             error('Aborting chart creation process.')
@@ -154,10 +160,18 @@ def operate_c(storage_main, args):
     else:
         style = 'DefaultStyle'
 
-    # Step 4: Render charts
-    analysis(storage_main.storage, duration=duration, max_y_labels=max_y_labels, style=style, dynamic=('-dynamic' in args))
+    # Step 5: Render charts
+    analysis(
+        storage_main.storage,
+        average_range=average_range,
+        duration=duration,
+        is_dynamic=('-dynamic' in args),
+        max_y_labels=max_y_labels,
+        style=style,
+        is_today=('-today' in args)
+    )
 
-    # Step 5: -open argument
+    # Step 6: -open argument
     if '-open' in args:
         try:
             os.system('open charts/*')

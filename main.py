@@ -20,18 +20,20 @@ import numpy
 
 APP_NAME = 'Kanji Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'b1.3.5'
+VERSION = 'b1.4.0'
 OPERATIONS = [
     Operation('A', 'Append Data', [
         Argument('-add', 'Add mode'),
         Argument('-ntb', 'Notability mode')
     ]),
     Operation('C', 'Create Charts', [
-        Argument('-days INTEGER', 'Duration'),
-        Argument('-max-y INTEGER', 'Maximum y-labels'),
+        Argument('-average INTEGER', 'Average (Default: All)'),
+        Argument('-days INTEGER', 'Duration (Default: All)'),
+        Argument('-max-y INTEGER', 'Maximum y-labels (Default: 15)'),
         Argument('-style STYLE_NAME', 'Style'),
-        Argument('-dynamic', 'Dynamic fill'),
-        Argument('-open', 'Open')
+        Argument('-dynamic', 'Dynamic Fill'),
+        Argument('-open', 'Open'),
+        Argument('-today', 'Today')
     ]),
     Operation('H', 'Help', []),
     Operation('R', 'Reload Storage', []),
@@ -46,11 +48,13 @@ OPERATIONS = [
 def main():
     ''' Main Function '''
     show_app_title()
+    
 
     if load_default_storage():
         storage_main = Storage(load_default_storage()) 
     else:
         notice('Please Input Storage Name')
+        print()
         storage_main = Storage(input('(Input) ').strip())
         print()
     
@@ -58,6 +62,8 @@ def main():
         notice('File \'DEFAULT_STORAGE.txt\' is found. Proceeding to storage loading.')
         notice('Storage \'{}\' is loaded.'.format(storage_main.name))
     storage_main.load()
+
+    show_operations()
     start_operating(storage_main)
 
 
@@ -68,20 +74,21 @@ def show_app_title():
     print(('by {} ({})'.format(AUTHOR, VERSION)).center(len(APP_NAME)))
     print()
 
+def show_operations():
+    ''' Function: Show operation list '''
+    print()
+    print('- Operation List -')
+
+    for i in OPERATIONS:
+        print('[{}] {}'.format(i.code, i.title))
+        for j in i.args:
+            print('    {}{}: {}'.format(j.code, ' ' * (max([len(k.code) for k in i.args]) - len(j.code) + 1), j.description))
+
 
 def start_operating(storage_main):
     ''' Function: Start operating application '''
     while True:
         print()
-        print('- Operation List -')
-
-        for i in OPERATIONS:
-            print('[{}] {}'.format(i.code, i.title))
-            for j in i.args:
-                print('    {}{}: {}'.format(j.code, ' ' * (max([len(k.code) for k in i.args]) - len(j.code) + 1), j.description))
-
-        print()
-
         try:
             action = [i for i in input('(Action) ').split()]
             print()
