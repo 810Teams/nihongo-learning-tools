@@ -5,13 +5,13 @@
 from src.loaders import load_default_storage
 from src.operations import Operation
 from src.operations import Argument
-from src.operations import operate_a
-from src.operations import operate_c
-from src.operations import operate_h
-from src.operations import operate_r
-from src.operations import operate_s
-from src.operations import operate_v
-from src.operations import operate_x
+from src.operations import operate_append
+from src.operations import operate_chart
+from src.operations import operate_help
+from src.operations import operate_reload
+from src.operations import operate_save
+from src.operations import operate_view
+from src.operations import operate_exit
 from src.storage import Storage
 from src.utils import error
 from src.utils import notice
@@ -20,13 +20,13 @@ import numpy
 
 APP_NAME = 'Kanji Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'b1.4.0'
+VERSION = 'b1.5.0'
 OPERATIONS = [
-    Operation('A', 'Append Data', [
+    Operation('append', 'Append Data', [
         Argument('-add', 'Add mode'),
         Argument('-ntb', 'Notability mode')
     ]),
-    Operation('C', 'Create Charts', [
+    Operation('chart', 'Create Charts', [
         Argument('-average INTEGER', 'Average (Default: All)'),
         Argument('-days INTEGER', 'Duration (Default: All)'),
         Argument('-max-y INTEGER', 'Maximum y-labels (Default: 15)'),
@@ -35,20 +35,19 @@ OPERATIONS = [
         Argument('-open', 'Open'),
         Argument('-today', 'Today')
     ]),
-    Operation('H', 'Help', []),
-    Operation('R', 'Reload Storage', []),
-    Operation('S', 'Save Storage', []),
-    Operation('V', 'View Storage', [
+    Operation('help', 'Help', []),
+    Operation('reload', 'Reload Storage', []),
+    Operation('save', 'Save Storage', []),
+    Operation('view', 'View Storage', [
         Argument('-open', 'Open')
     ]),
-    Operation('X', 'Exit Application', []),
+    Operation('exit', 'Exit Application', []),
 ]
 
 
 def main():
     ''' Main Function '''
     show_app_title()
-    
 
     if load_default_storage():
         storage_main = Storage(load_default_storage()) 
@@ -74,6 +73,7 @@ def show_app_title():
     print(('by {} ({})'.format(AUTHOR, VERSION)).center(len(APP_NAME)))
     print()
 
+
 def show_operations():
     ''' Function: Show operation list '''
     print()
@@ -92,7 +92,7 @@ def start_operating(storage_main):
         try:
             action = [i for i in input('(Action) ').split()]
             print()
-            operate(storage_main, action[0].upper(), action[1:])
+            operate(storage_main, action[0].lower(), action[1:])
         except IndexError:
             error('Invalid action format. Please try again.')
 

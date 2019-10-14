@@ -51,7 +51,7 @@ class Argument:
         self.description = description
 
 
-def operate_a(storage_main, args):
+def operate_append(storage_main, args):
     ''' Function: Operation Code 'A' (Add Data) '''
     if '-add' in args:
         notice('Please input increasing data in a,b,c format.')
@@ -87,7 +87,7 @@ def operate_a(storage_main, args):
             error('Invalid value format. Please try again.')
 
 
-def operate_c(storage_main, args):
+def operate_chart(storage_main, args):
     ''' Function: Operation Code 'C' (Create Charts) '''
     # Step 1: -average argument
     if '-average' in args:
@@ -180,7 +180,7 @@ def operate_c(storage_main, args):
             error('Something unexpected happened, please try again.')
 
 
-def operate_h(storage_main, args):
+def operate_help(storage_main, args):
     ''' Function: Operation Code 'H' (Help) '''
     try:
         os.system('open HELP.md')
@@ -189,17 +189,17 @@ def operate_h(storage_main, args):
         error('Something unexpected happened, please try again.')
 
 
-def operate_r(storage_main, args):
+def operate_reload(storage_main, args):
     ''' Function: Operation Code 'R' (Reload Storage) '''
     storage_main.reload()
 
 
-def operate_s(storage_main, args):
+def operate_save(storage_main, args):
     ''' Function: Operation Code 'S' (Save Storage) '''
     storage_main.save()
 
 
-def operate_v(storage_main, args):
+def operate_view(storage_main, args):
     ''' Function: Operation Code 'V' (View Storage) '''
     storage_main.view()
 
@@ -212,7 +212,7 @@ def operate_v(storage_main, args):
             error('Something unexpected happened, please try again.')
 
 
-def operate_x(storage_main, args):
+def operate_exit(storage_main, args):
     ''' Function: Operation Code 'X' (Exit) '''
     notice('Exitting application.')
     print()
