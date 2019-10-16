@@ -20,13 +20,13 @@ import numpy
 
 APP_NAME = 'Kanji Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'b1.5.0'
+VERSION = 'b1.5.1'
 OPERATIONS = [
-    Operation('append', 'Append Data', [
+    Operation('a', 'append', 'Append Data', [
         Argument('-add', 'Add mode'),
         Argument('-ntb', 'Notability mode')
     ]),
-    Operation('chart', 'Create Charts', [
+    Operation('c', 'chart', 'Create Charts', [
         Argument('-average INTEGER', 'Average (Default: All)'),
         Argument('-days INTEGER', 'Duration (Default: All)'),
         Argument('-max-y INTEGER', 'Maximum y-labels (Default: 15)'),
@@ -35,13 +35,13 @@ OPERATIONS = [
         Argument('-open', 'Open'),
         Argument('-today', 'Today')
     ]),
-    Operation('help', 'Help', []),
-    Operation('reload', 'Reload Storage', []),
-    Operation('save', 'Save Storage', []),
-    Operation('view', 'View Storage', [
+    Operation('h', 'help', 'Help', []),
+    Operation('r', 'reload', 'Reload Storage', []),
+    Operation('s', 'save', 'Save Storage', []),
+    Operation('v', 'view', 'View Storage', [
         Argument('-open', 'Open')
     ]),
-    Operation('exit', 'Exit Application', []),
+    Operation('x', 'exit', 'Exit Application', []),
 ]
 
 
@@ -80,9 +80,10 @@ def show_operations():
     print('- Operation List -')
 
     for i in OPERATIONS:
-        print('[{}] {}'.format(i.code, i.title))
+        # print('[{}] {}'.format(i.command, i.title))
+        print('[{}]'.format(i.command))
         for j in i.args:
-            print('    {}{}: {}'.format(j.code, ' ' * (max([len(k.code) for k in i.args]) - len(j.code) + 1), j.description))
+            print('    {}{}: {}'.format(j.name, ' ' * (max([len(k.name) for k in i.args]) - len(j.name) + 1), j.description))
 
 
 def start_operating(storage_main):
@@ -90,7 +91,7 @@ def start_operating(storage_main):
     while True:
         print()
         try:
-            action = [i for i in input('(Action) ').split()]
+            action = [i for i in input('(Command) ').split()]
             print()
             operate(storage_main, action[0].lower(), action[1:])
         except IndexError:
@@ -102,7 +103,9 @@ def operate(storage_main, action, args):
     try:
         eval('operate_{}(storage_main, args)'.format(action.lower()))
     except (NameError, SyntaxError):
-        error('Invalid action. Please try again.')
-
+        try:
+            eval('operate_{}(storage_main, args)'.format([i.command for i in OPERATIONS if i.code == action.lower()][0]))
+        except (IndexError, NameError, SyntaxError):
+            error('Invalid action. Please try again.')
 
 main()

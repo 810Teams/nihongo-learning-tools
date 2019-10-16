@@ -33,21 +33,22 @@ STYLES = (
 
 
 class Operation:
-    def __init__(self, code, title, args):
+    def __init__(self, code, command, title, args):
         self.code = code
+        self.command = command
         self.title = title
         self.args = args
     
     def operate(self, storage_main, args):
         try:
-            eval('operate_{}(storage_main, args)'.format(self.code.lower()))
+            eval('operate_{}(storage_main, args)'.format(self.command.lower()))
         except (NameError, SyntaxError):
             error('Invalid action. Please try again.')
 
 
 class Argument:
-    def __init__(self, code, description):
-        self.code = code
+    def __init__(self, name, description):
+        self.name = name
         self.description = description
 
 
