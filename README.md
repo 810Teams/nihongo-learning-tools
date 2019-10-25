@@ -4,7 +4,7 @@ Progress Tracker application runs on Terminal.
 
 ## Download
 
-The application is available for download in the [Releases](https://github.com/810Teams/progress-tracker/releases) tab. If not available in the releases tab, [download zip](https://github.com/810Teams/progress-tracker/archive/master.zip) instead on the master branch.
+The application is available download by clicking [Download ZIP](https://github.com/810Teams/progress-tracker/archive/master.zip).
 
 ## Compatibility
 
