@@ -2,11 +2,15 @@
     `operations.py`
 '''
 
+from custom.custom_append import custom_append_1
+from custom.custom_append import custom_append_2
+from custom.custom_append import custom_append_3
+from custom.custom_append import custom_append_4
+from custom.custom_append import custom_append_5
 from src.analysis import analysis, clean
 from src.loaders import load_default_style
 from src.storage import Storage
 from src.utils import error
-from src.utils import kanji_calculate
 from src.utils import notice
 
 import os
@@ -66,16 +70,26 @@ def operate_append(storage_main, args):
             storage_main.append([int(initial[i]) + temp[i] for i in range(len(initial))])
         except ValueError:
             error('Invalid value format. Please try again.')
-    elif '-ntb' in args:
-        notice('Please input kanji data in a x,b y,c z format.')
+    elif '-cus' in args:
+        try:
+            custom_id = int(args[args.index('-cus') + 1])
+            if custom_id not in (1, 2, 3, 4, 5):
+                error('Custom ID must be an integer from 1 to 5.')
+                return
+        except (IndexError, ValueError):
+            error('Custom ID must be an integer.')
+            return
+        
+        notice('Please input custom formatted data.')
         print()
         temp = input('(Input) ')
         print()
 
         try:
-            storage_main.append([kanji_calculate(int(i.split()[0]), int(i.split()[1])) for i in temp.split(',')])
-        except ValueError:
+            eval('storage_main.append([custom_append_{}([int(i.split()[0]), int(i.split()[1])]) for i in temp.split(\',\')])'.format(custom_id))
+        except IndexError:
             error('Invalid value format. Please try again.')
+            error('Function \'custom_append_{}\' might not have been implemented.'.format(custom_id))
     else:
         notice('Please input data in a,b,c format.')
         print()
@@ -163,7 +177,8 @@ def operate_chart(storage_main, args):
 
     # Step 5: Render charts
     analysis(
-        storage_main.storage,
+        storage_main,
+        allow_float=('-allow-float' in args),
         average_range=average_range,
         duration=duration,
         is_dynamic=('-dynamic' in args),

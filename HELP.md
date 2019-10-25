@@ -1,5 +1,5 @@
-# Kanji Tracker Application Help
-Kanji Tracker Application help documentation.
+# Progress Tracker Application Help
+Progress Tracker Application help documentation.
 
 ## Operations
 
@@ -13,7 +13,7 @@ Command `append` is used to append data into a specific storage. After typing in
 
 `-add INTEGER`
 
-`-ntb INTEGER`
+`-cus INTEGER`
 
 ### Create Charts
 
@@ -28,6 +28,8 @@ Command `chart` is used to create charts in SVG format. Created charts will be i
 `-max-y INTEGER`
 
 `-style STYLE_NAME`
+
+`-allow-float`
 
 `-dynamic`
 

@@ -18,19 +18,20 @@ from src.utils import notice
 
 import numpy
 
-APP_NAME = 'Kanji Tracker Application'
+APP_NAME = 'Progress Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'b1.5.1'
+VERSION = 'v1.0.0'
 OPERATIONS = [
     Operation('a', 'append', 'Append Data', [
         Argument('-add', 'Add mode'),
-        Argument('-ntb', 'Notability mode')
+        Argument('-cus INTEGER', 'Custom written method')
     ]),
     Operation('c', 'chart', 'Create Charts', [
         Argument('-average INTEGER', 'Average (Default: All)'),
         Argument('-days INTEGER', 'Duration (Default: All)'),
         Argument('-max-y INTEGER', 'Maximum y-labels (Default: 15)'),
         Argument('-style STYLE_NAME', 'Style'),
+        Argument('-allow-float', 'Allow floating points'),
         Argument('-dynamic', 'Dynamic Fill'),
         Argument('-open', 'Open'),
         Argument('-today', 'Today')
@@ -105,7 +106,7 @@ def operate(storage_main, action, args):
     except (NameError, SyntaxError):
         try:
             eval('operate_{}(storage_main, args)'.format([i.command for i in OPERATIONS if i.code == action.lower()][0]))
-        except (IndexError, NameError, SyntaxError):
+        except (IndexError, NameError, SyntaxError): 
             error('Invalid action. Please try again.')
 
 main()
