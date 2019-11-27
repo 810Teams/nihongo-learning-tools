@@ -20,7 +20,7 @@ import numpy
 
 APP_NAME = 'Progress Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'v1.0.0'
+VERSION = 'v1.0.1'
 OPERATIONS = [
     Operation('a', 'append', 'Append Data', [
         Argument('-add', 'Add mode'),

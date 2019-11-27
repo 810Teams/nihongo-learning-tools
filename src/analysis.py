@@ -318,7 +318,7 @@ def render_chart_development(data, allow_float=False, average_range=None, chart_
         data_min = floor(min([min(i) for i in data_average]))
     elif chart_type == 'rate stacked average':
         data_max = ceil(max([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
-        data_min = ceil(min([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
+        data_min = floor(min([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
 
     chart.y_labels = calculate_y_labels(data_min, data_max, allow_float=allow_float, max_y_labels=max_y_labels)
 
@@ -363,11 +363,11 @@ def render_chart_development(data, allow_float=False, average_range=None, chart_
 def calculate_y_labels(data_min, data_max, allow_float=False, max_y_labels=15):
     ''' Function: Calculate '''
     preset = 1, 2, 5
-    data_range = list(range(-1, data_min - 1, -1)) + list(range(0, data_max + 1, 1))
+    data_range = list(range(0, data_min - 1, -1)) + list(range(0, data_max + 1, 1))
     i = 0
 
     while len(data_range) > max_y_labels:
-        data_range = list(range(-1, data_min - preset[i % 3] * 10**(i // 3), -1 * preset[i % 3] * 10**(i // 3)))
+        data_range = list(range(0, data_min - preset[i % 3] * 10**(i // 3), -1 * preset[i % 3] * 10**(i // 3)))
         data_range += list(range(0, data_max + preset[i % 3] * 10**(i // 3), preset[i % 3] * 10**(i // 3)))
         i += 1
         
