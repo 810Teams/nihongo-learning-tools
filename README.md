@@ -53,3 +53,7 @@ For full user manual guide, please read [HELP.md](HELP.md) included in the appli
 ## Notes
 
 This application was originally made for personal use, I cannot guarantee anything.
+
+[![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/made-with-java.svg)](https://forthebadge.com)
