@@ -362,6 +362,13 @@ def render_chart_development(data, allow_float=False, average_range=None, chart_
 
 def calculate_y_labels(data_min, data_max, allow_float=False, max_y_labels=15):
     ''' Function: Calculate '''
+    data_min = floor(data_min)
+    data_max = ceil(data_max)
+    
+    if allow_float:
+        data_min *= 100
+        data_max *= 100
+
     preset = 1, 2, 5
     data_range = list(range(0, data_min - 1, -1)) + list(range(0, data_max + 1, 1))
     i = 0
@@ -374,9 +381,6 @@ def calculate_y_labels(data_min, data_max, allow_float=False, max_y_labels=15):
     data_range.sort()
 
     if allow_float:
-        if data_range[1] - data_range[0] == 1 and len(data_range)*2 - 1 < max_y_labels:
-            data_range = sorted(data_range + [i + 0.5 for i in data_range if i + 0.5 <= data_max])
-        if data_range[1] - data_range[0] == 0.5 and len(data_range)*2 - 1 < max_y_labels:
-            data_range = sorted(data_range + [i + 0.25 for i in data_range if i + 0.25 <= data_max])  
+        data_range = [i/100 for i in data_range]
 
     return data_range

@@ -20,7 +20,7 @@ import numpy
 
 APP_NAME = 'Progress Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'v1.0.1'
+VERSION = 'v1.1.0'
 OPERATIONS = [
     Operation('a', 'append', 'Append Data', [
         Argument('-add', 'Add mode'),
@@ -34,6 +34,7 @@ OPERATIONS = [
         Argument('-allow-float', 'Allow floating points'),
         Argument('-dynamic', 'Dynamic Fill'),
         Argument('-open', 'Open'),
+        Argument('-open-only', 'Open Only'),
         Argument('-today', 'Today')
     ]),
     Operation('h', 'help', 'Help', []),

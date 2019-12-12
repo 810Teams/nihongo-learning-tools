@@ -35,6 +35,8 @@ Command `chart` is used to create charts in SVG format. Created charts will be i
 
 `-open`
 
+`-open-only`
+
 `-today`
 
 ### Help

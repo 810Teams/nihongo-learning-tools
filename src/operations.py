@@ -104,6 +104,15 @@ def operate_append(storage_main, args):
 
 def operate_chart(storage_main, args):
     ''' Function: Operation Code 'C' (Create Charts) '''
+    # Step 0: -open-only argument
+    if '-open-only' in args:
+        try:
+            os.system('open charts/*')
+            notice('Opening chart files.')
+        except (FileNotFoundError, OSError, PermissionError):
+            error('Something unexpected happened, please try again.')
+        return
+
     # Step 1: -average argument
     if '-average' in args:
         # Test for valid format
