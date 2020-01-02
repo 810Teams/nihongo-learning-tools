@@ -2,11 +2,7 @@
     `operations.py`
 '''
 
-from custom.custom_append import custom_append_1
-from custom.custom_append import custom_append_2
-from custom.custom_append import custom_append_3
-from custom.custom_append import custom_append_4
-from custom.custom_append import custom_append_5
+from custom.custom_append import custom_append_head
 from src.analysis import analysis, clean
 from src.loaders import load_default_style
 from src.storage import Storage
@@ -65,7 +61,14 @@ def operate_append(storage_main, args):
         print()
 
         try:
-            temp = [int(i.replace(' ', ''))for i in temp.split(',')]
+            temp = [i.replace(' ', '') for i in temp.split(',')]
+
+            for i in range(len(temp)):
+                if (temp[i] == ''):
+                    temp[i] = 0
+                else:
+                    temp[i] = int(temp[i])
+
             initial = storage_main.to_list()[-1][1:]
             storage_main.append([int(initial[i]) + temp[i] for i in range(len(initial))])
         except ValueError:
@@ -86,7 +89,7 @@ def operate_append(storage_main, args):
         print()
 
         try:
-            eval('storage_main.append([custom_append_{}([int(i.split()[0]), int(i.split()[1])]) for i in temp.split(\',\')])'.format(custom_id))
+            storage_main.append(custom_append_head(temp, custom_id))
         except IndexError:
             error('Invalid value format. Please try again.')
             error('Function \'custom_append_{}\' might not have been implemented.'.format(custom_id))
@@ -97,7 +100,15 @@ def operate_append(storage_main, args):
         print()
 
         try:
-            storage_main.append([int(i.replace(' ', ''))for i in temp.split(',')])
+            temp = [i.replace(' ', '') for i in temp.split(',')]
+
+            for i in range(len(temp)):
+                if (temp[i] == ''):
+                    temp[i] = 0
+                else:
+                    temp[i] = int(temp[i])
+
+            storage_main.append(temp)
         except ValueError:
             error('Invalid value format. Please try again.')
 
