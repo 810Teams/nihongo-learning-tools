@@ -195,19 +195,38 @@ def operate_chart(storage_main, args):
     else:
         style = 'DefaultStyle'
 
-    # Step 5: Render charts
+    # Step 5: -x-label argument
+    if '-x-label' in args:
+        # Step 5.1 - Test for valid format
+        try:
+            x_label = args[args.index('-x-label') + 1]
+        except (IndexError, ValueError):
+            error('X-label type must be a string.')
+            error('Aborting chart creation process.')
+            return
+        
+        # Step 5.2 - Test for valid requirements
+        if x_label not in ('date', 'count', 'both'):
+            error('X-label type must be either \'date\', \'count\', or \'both\'')
+            error('Aborting chart creation process.')
+            return
+    else:
+        x_label = 'date'
+
+    # Step 6: Render charts
     analysis(
         storage_main,
         allow_float=('-allow-float' in args),
         average_range=average_range,
         duration=duration,
         is_dynamic=('-dynamic' in args),
+        is_today=('-today' in args),
         max_y_labels=max_y_labels,
         style=style,
-        is_today=('-today' in args)
+        x_label=x_label
     )
 
-    # Step 6: -open argument
+    # Step 7: -open argument
     if '-open' in args:
         try:
             os.system('open charts/*')

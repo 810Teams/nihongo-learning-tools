@@ -33,7 +33,7 @@ NAME = str()
 COLUMNS = list()
 
 
-def analysis(storage_main, allow_float=False, average_range=None, duration=0, is_dynamic=False, max_y_labels=15, style='DefaultStyle', is_today=False):
+def analysis(storage_main, allow_float=False, average_range=None, duration=0, is_dynamic=False, is_today=False, max_y_labels=15, style='DefaultStyle', x_label='date'):
     ''' Function: Analysis '''
     time_start = perf_counter()
 
@@ -56,12 +56,12 @@ def analysis(storage_main, allow_float=False, average_range=None, duration=0, is
         style = DefaultStyle
     
     render_chart_total(data, allow_float=allow_float, max_y_labels=max_y_labels, style=style)
-    render_chart_development(data, allow_float=allow_float, chart_type='total default', max_y_labels=max_y_labels, style=style)
-    render_chart_development(data, allow_float=allow_float, chart_type='total stacked', max_y_labels=max_y_labels, style=style)
-    render_chart_development(data, allow_float=allow_float, chart_type='rate default',  max_y_labels=max_y_labels, style=style)
-    render_chart_development(data, allow_float=allow_float, chart_type='rate stacked',  max_y_labels=max_y_labels, style=style)
-    render_chart_development(data, allow_float=allow_float, average_range=average_range, chart_type='rate default average', max_y_labels=max_y_labels, style=style)
-    render_chart_development(data,allow_float=allow_float,  average_range=average_range, chart_type='rate stacked average', max_y_labels=max_y_labels, style=style)
+    render_chart_development(data, allow_float=allow_float, chart_type='total default', max_y_labels=max_y_labels, style=style, x_label=x_label)
+    render_chart_development(data, allow_float=allow_float, chart_type='total stacked', max_y_labels=max_y_labels, style=style, x_label=x_label)
+    render_chart_development(data, allow_float=allow_float, chart_type='rate default',  max_y_labels=max_y_labels, style=style, x_label=x_label)
+    render_chart_development(data, allow_float=allow_float, chart_type='rate stacked',  max_y_labels=max_y_labels, style=style, x_label=x_label)
+    render_chart_development(data, allow_float=allow_float, average_range=average_range, chart_type='rate default average', max_y_labels=max_y_labels, style=style, x_label=x_label)
+    render_chart_development(data,allow_float=allow_float,  average_range=average_range, chart_type='rate stacked average', max_y_labels=max_y_labels, style=style, x_label=x_label)
     notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
 
@@ -106,7 +106,7 @@ def manipulate(data, duration=0, is_dynamic=False, is_today=False):
 
 
 def validate_arguments(data, average_range=None, duration=0, is_dynamic=False, max_y_labels=15, style='DefaultStyle', is_today=False):
-    ''' Function: Validates arguments '''
+    ''' Function: Validates arguments which depends on the length of cleaned data '''
     # Step 1: -average argument
     if average_range == None:
         pass
@@ -229,7 +229,7 @@ def render_chart_total(data, allow_float=False, max_y_labels=15, style=DefaultSt
     notice('Chart \'{}_total\' successfully exported.'.format(NAME.lower()))
 
 
-def render_chart_development(data, allow_float=False, average_range=None, chart_type='total default',  max_y_labels=15, style=DefaultStyle):
+def render_chart_development(data, allow_float=False, average_range=None, chart_type='total default', max_y_labels=15, style=DefaultStyle, x_label='date'):
     ''' Function: Kanji Development Analysis '''
     # Chart Type Check
     chart_types = {
@@ -291,17 +291,34 @@ def render_chart_development(data, allow_float=False, average_range=None, chart_
     chart.y_title = 'Amount'
 
     # Chart Labels
-    if 'total' in chart_type:
-        chart.x_labels = [i[0] for i in data]
-    elif 'rate' in chart_type:
-        chart.x_labels = [i[0] for i in data[1:]]
+    if x_label == 'date':
+        if 'total' in chart_type:
+            chart.x_labels = [i[0] for i in data]
+        elif 'rate' in chart_type:
+            chart.x_labels = [i[0] for i in data[1:]]
+    elif x_label == 'count':
+        if 'total' in chart_type:
+            chart.x_labels = ['Day {}'.format(i + 1) for i in range(len(data))]
+        elif 'rate' in chart_type:
+            chart.x_labels = ['Day {}'.format(i + 2) for i in range(len(data[1:]))]
+    elif x_label == 'both':
+        if 'total' in chart_type:
+            chart.x_labels = ['{} (Day {})'.format(data[i][0], i + 1) for i in range(len(data))]
+        elif 'rate' in chart_type:
+            chart.x_labels = ['{} (Day {})'.format(data[i + 1][0], i + 2) for i in range(len(data[1:]))]
+    else:
+        if 'total' in chart_type:
+            chart.x_labels = [i[0] for i in data]
+        elif 'rate' in chart_type:
+            chart.x_labels = [i[0] for i in data[1:]]
+
     chart.x_label_rotation = 20
-    chart.x_labels_major_every = len(data) // 7 + (len(data) < 7)
+    chart.x_labels_major_count = 7 + (len(data) - 7) * (8 <= len(data) <= 10) - 1 * (11 <= len(data) <= 12)
+    # chart.x_labels_major_every = len(data) // 7 + (len(data) < 7)
     chart.truncate_label = -1
     chart.show_minor_x_labels = False
 
     if chart_type == 'total default':
-        # data_max = max([i for i in data[-1][1:]])
         data_max = max([max([j for j in i[1:]]) for i in data])
         data_min = min([min([j for j in i[1:]]) for i in data])
     elif chart_type == 'total stacked':

@@ -20,7 +20,7 @@ import numpy
 
 APP_NAME = 'Progress Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'v1.2.0'
+VERSION = 'v1.3.0'
 OPERATIONS = [
     Operation('a', 'append', 'Append Data', [
         Argument('-add', 'Add mode'),
@@ -31,6 +31,7 @@ OPERATIONS = [
         Argument('-days INTEGER', 'Duration (Default: All)'),
         Argument('-max-y INTEGER', 'Maximum y-labels (Default: 15)'),
         Argument('-style STYLE_NAME', 'Style'),
+        Argument('-x-label [date,count,both]', 'X-label type (Default: date)'),
         Argument('-allow-float', 'Allow floating points'),
         Argument('-dynamic', 'Dynamic Fill'),
         Argument('-open', 'Open'),
