@@ -42,11 +42,10 @@ def analysis(storage_main, allow_float=False, average_range=None, duration=0, is
     COLUMNS = storage_main.storage.columns[1:]
 
     data = clean(numpy.array(storage_main.storage).tolist())
+    data = manipulate(data, duration=duration, is_dynamic=is_dynamic, is_today=is_today)
 
     if not validate_arguments(data, average_range=average_range, duration=duration, is_dynamic=is_dynamic, max_y_labels=max_y_labels, style=style, is_today=is_today):
         return
-    
-    data = manipulate(data, duration=duration, is_dynamic=is_dynamic, is_today=is_today)
 
     # Analysis
     try:
