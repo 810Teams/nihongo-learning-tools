@@ -29,24 +29,26 @@ from src.util.logging import notice
 from src.util.calculation import average
 
 import numpy
-import pandas
 import pygal
 
-
-NAME = str()
-COLUMNS = list()
 
 class RenderService():
     def __init__(self, storage: Storage) -> None:
         self.storage = storage
-
-    def render_all(self, allow_float=False, average_range=None, days=0, is_dynamic=False, is_today=False, max_y_labels=15, style='DefaultStyle', x_label='date'):
-        ''' Function: Analysis '''
+    
+    def render_all(
+        self,
+        allow_float=False,
+        average_range=None,
+        days=0,
+        is_dynamic=False,
+        is_today=False,
+        max_y_labels=15,
+        style='DefaultStyle',
+        x_label='date'
+    ):
+        """ Function: Analysis """
         time_start = perf_counter()
-
-        global NAME, COLUMNS
-        NAME = self.storage.name
-        COLUMNS = self.storage.data.columns[1:]
 
         data = self.clean(numpy.array(self.storage.data).tolist())
         data = self.manipulate(data, days=days, is_dynamic=is_dynamic, is_today=is_today)
@@ -72,7 +74,7 @@ class RenderService():
 
 
     def clean(self, data):
-        ''' Function: Clean Data '''
+        """ Function: Clean Data """
         # Step 1 - Sort
         data.sort(key=lambda i: i[0])
 
@@ -87,7 +89,7 @@ class RenderService():
 
 
     def manipulate(self, data, days=0, is_dynamic=False, is_today=False):
-        ''' Function: Manipulate Data '''
+        """ Function: Manipulate Data """
         # Step 1 - Sort
         data.sort(key=lambda i: i[0])
 
@@ -112,11 +114,9 @@ class RenderService():
 
 
     def validate_arguments(self, data, average_range=None, days=0):
-        ''' Function: Validates arguments which depends on the length of cleaned data '''
+        """ Function: Validates arguments which depends on the length of cleaned data """
         # Step 1: -average argument
-        if average_range == None:
-            pass
-        elif not (1 <= average_range <= len(data) - 1):
+        if average_range != None and not (1 <= average_range <= len(data) - 1):
             error('Average range must be an integer from {} to {}.'.format(1, len(data) - 1))
             error('Aborting chart creation process.')
             return False
@@ -131,12 +131,12 @@ class RenderService():
 
 
     def add_day_to_date(self, date_string, days):
-        ''' Function: Add days to date '''
+        """ Function: Add days to date """
         return str(datetime.strptime(date_string, '%Y-%m-%d') + timedelta(days=days)).split()[0]
 
 
     def static_fill(self, data):
-        ''' Function: Fill missing data statically '''
+        """ Function: Fill missing data statically """
         missing_dates = list()
         start_date = data[0][0]
         end_date = data[-1][0]
@@ -155,7 +155,7 @@ class RenderService():
 
 
     def dynamic_fill(self, data):
-        ''' Function: Fill missing data dynamically '''
+        """ Function: Fill missing data dynamically """
         missing_dates = [list()]
         start_date = data[0][0]
         end_date = data[-1][0]
@@ -191,7 +191,7 @@ class RenderService():
 
 
     def today_fill(self, data):
-        ''' Function: Fill date until today '''
+        """ Function: Fill date until today """
         today = str(datetime.now())
         today = today[0:len(today)-7].split()[0]
 
@@ -203,15 +203,15 @@ class RenderService():
 
 
     def render_chart_total(self, data, allow_float=False, max_y_labels=15, style=DefaultStyle):
-        ''' Function: Kanji Total Analysis '''
+        """ Function: Kanji Total Analysis """
         chart = pygal.Bar()
 
         # Chart Data
-        for i in range(len(COLUMNS)):
-            chart.add(COLUMNS[i], data[-1][i + 1])
+        for i in range(len(self.storage.get_columns())):
+            chart.add(self.storage.get_columns()[i], data[-1][i + 1])
 
         # Chart Titles
-        chart.title = '{} Totals'.format(NAME.capitalize())
+        chart.title = '{} Totals'.format(self.storage.name.capitalize())
         chart.y_title = 'Amount'
 
         # Chart Labels
@@ -229,14 +229,14 @@ class RenderService():
 
         # Chart Render
         chart.style = style
-        chart.render_to_file('charts/{}_total.svg'.format(NAME.lower()))
+        chart.render_to_file('charts/{}_total.svg'.format(self.storage.name.lower()))
 
         # Notice
-        notice('Chart \'{}_total\' successfully exported.'.format(NAME.lower()))
+        notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()))
 
 
     def render_chart_development(self, data, allow_float=False, average_range=None, chart_type='total default', max_y_labels=15, max_dots=100, style=DefaultStyle, x_label='date'):
-        ''' Function: Kanji Development Analysis '''
+        """ Function: Kanji Development Analysis """
         # Chart Type Check
         chart_types = {
             'total default': 110,
@@ -262,17 +262,18 @@ class RenderService():
         while len(data)/dots_every > max_dots:
             dots_every += 1
 
+        columns = self.storage.get_columns()
         if 'total' in chart_type:
-            for i in range(len(COLUMNS)):
-                chart.add(COLUMNS[i], [{'value': data[j][i + 1], 'node': {'r': (j % dots_every == 0 or j == len(data) - 1) * 1.5}} for j in range(len(data))])
+            for i in range(len(columns)):
+                chart.add(columns[i], [{'value': data[j][i + 1], 'node': {'r': (j % dots_every == 0 or j == len(data) - 1) * 1.5}} for j in range(len(data))])
         elif 'rate' in chart_type:
-            data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(COLUMNS) + 1)]
+            data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(columns) + 1)]
             if 'average' not in chart_type:
-                for i in range(len(COLUMNS)):
-                    chart.add(COLUMNS[i], data_rate[i])
+                for i in range(len(columns)):
+                    chart.add(columns[i], data_rate[i])
             else:
                 data_average = list()
-                for i in range(len(COLUMNS)):
+                for i in range(len(columns)):
                     temp = list()
 
                     for j in range(len(data_rate[i])):
@@ -284,11 +285,11 @@ class RenderService():
                             elif average_range <= j:
                                 temp.append(round(average(data_rate[i][j - average_range + 1:j + 1]), 2))
 
-                    chart.add(COLUMNS[i], temp)
+                    chart.add(columns[i], temp)
                     data_average.append(temp)
 
         # Chart Titles
-        chart.title = '{} Development'.format(NAME.capitalize())
+        chart.title = '{} Development'.format(self.storage.name.capitalize())
 
         if 'rate' in chart_type:
             chart.title += ' Rate'
@@ -324,7 +325,6 @@ class RenderService():
 
         chart.x_label_rotation = 20
         chart.x_labels_major_count = 7 + (len(data) - 7) * (8 <= len(data) <= 10) - 1 * (11 <= len(data) <= 12)
-        # chart.x_labels_major_every = len(data) // 7 + (len(data) < 7)
         chart.truncate_label = -1
         chart.show_minor_x_labels = False
 
@@ -335,8 +335,8 @@ class RenderService():
             data_max = max([sum([j for j in i[1:]]) for i in data])
             data_min = min([sum([j for j in i[1:]]) for i in data])
         elif chart_type == 'rate default':
-            data_max = max([max([data[i][j] - data[i - 1][j] for i in range(1, len(data))]) for j in range(1, len(COLUMNS) + 1)])
-            data_min = min([min([data[i][j] - data[i - 1][j] for i in range(1, len(data))]) for j in range(1, len(COLUMNS) + 1)])
+            data_max = max([max([data[i][j] - data[i - 1][j] for i in range(1, len(data))]) for j in range(1, len(self.storage.get_columns()) + 1)])
+            data_min = min([min([data[i][j] - data[i - 1][j] for i in range(1, len(data))]) for j in range(1, len(self.storage.get_columns()) + 1)])
         elif chart_type == 'rate stacked':
             data_max = max([sum([data_rate[i][j] for i in range(len(data_rate))]) for j in range(len(data_rate[0]))])
             data_min = min([sum([data_rate[i][j] for i in range(len(data_rate))]) for j in range(len(data_rate[0]))])
@@ -372,7 +372,7 @@ class RenderService():
             chart.dots_size = 1.5
             chart.fill = True
 
-        file_name = '{}_development'.format(NAME.lower())
+        file_name = '{}_development'.format(self.storage.name.lower())
         if 'total' in chart_type:
             file_name += '_total'
         if 'rate' in chart_type:
@@ -388,7 +388,7 @@ class RenderService():
 
 
     def calculate_y_labels(self, data_min, data_max, allow_float=False, max_y_labels=15):
-        ''' Function: Calculate '''
+        """ Function: Calculate """
         data_min = floor(data_min)
         data_max = ceil(data_max)
         

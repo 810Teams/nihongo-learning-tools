@@ -81,3 +81,7 @@ class Storage:
     def to_list(self):
         """ System Method: Returns a list of storage data """
         return numpy.array(self.data).tolist()
+
+    def get_columns(self):
+        """ System Method: Returns a list of columns """
+        return self.data.columns[1:]

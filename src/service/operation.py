@@ -122,16 +122,15 @@ class OperationService:
             return
 
         # Step 1: -average argument
+        average_range = None
         if command.contains_argument('-average'):
             # Test for valid format
             try:
-                average_range = int(command.get_argument('average').value)
+                average_range = int(command.get_argument('-average').value)
             except (IndexError, ValueError):
                 error('Average range must be an integer.')
                 error('Aborting chart creation process.')
                 return
-        else:
-            average_range = None
 
         # Step 2: -days argument
         days = 0
@@ -190,6 +189,7 @@ class OperationService:
             notice('Style \'{}\' will be used in chart creation.'.format(DEFAULT_STYLE))
 
         # Step 5: -x-label argument
+        x_label = 'date'
         if command.contains_argument('-x-label'):
             # Step 5.1 - Test for valid format
             try:
@@ -204,9 +204,7 @@ class OperationService:
                 error('X-label type must be either \'date\', \'count\', or \'both\'')
                 error('Aborting chart creation process.')
                 return
-        else:
-            x_label = 'date'
-
+            
         # Step 6: Render charts
         self.render_service.render_all(
             allow_float=command.contains_argument('-allow-float'),
