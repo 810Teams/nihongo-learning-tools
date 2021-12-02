@@ -3,27 +3,13 @@
 """
 
 from pygal.style import DefaultStyle
-from pygal.style import DarkStyle
-from pygal.style import NeonStyle
-from pygal.style import DarkSolarizedStyle
-from pygal.style import LightSolarizedStyle
-from pygal.style import LightStyle
-from pygal.style import CleanStyle
-from pygal.style import RedBlueStyle
-from pygal.style import DarkColorizedStyle
-from pygal.style import LightColorizedStyle
-from pygal.style import TurquoiseStyle
-from pygal.style import LightGreenStyle
-from pygal.style import DarkGreenStyle
-from pygal.style import DarkGreenBlueStyle
-from pygal.style import BlueStyle
 
 from datetime import datetime
 from datetime import timedelta
 from math import ceil, floor
 from time import perf_counter
-from src.model.storage import Storage
 
+from src.model.storage import Storage
 from src.util.logging import error
 from src.util.logging import notice
 from src.util.calculation import average
@@ -35,6 +21,15 @@ import pygal
 class RenderService():
     def __init__(self, storage: Storage) -> None:
         self.storage = storage
+
+        self.CHART_TYPE_LIST = [
+            'total default',
+            'total stacked',
+            'rate default',
+            'rate stacked',
+            'rate default average',
+            'rate stacked average'
+        ]
     
     def render_all(
         self,
@@ -43,33 +38,44 @@ class RenderService():
         days=0,
         is_dynamic=False,
         is_today=False,
+        max_dots=100,
         max_y_labels=15,
         style='DefaultStyle',
         x_label='date'
     ):
         """ Function: Analysis """
+        # Data Preparation
         time_start = perf_counter()
-
         data = self.clean(numpy.array(self.storage.data).tolist())
         data = self.manipulate(data, days=days, is_dynamic=is_dynamic, is_today=is_today)
 
+        # Arguments Validation
         if not self.validate_arguments(data, average_range=average_range, days=days):
             return
 
-        # Analysis
+        # Style Loading
         try:
+            exec('from pygal.style import {}'.format(style))
             style = eval(style)
-        except (NameError, SyntaxError):
+        except (NameError, SyntaxError, ImportError):
             error('Invalid style name. \'DefaultStyle\' will be used instead.')
             style = DefaultStyle
         
+        # Rendering
         self.render_chart_total(data, allow_float=allow_float, max_y_labels=max_y_labels, style=style)
-        self.render_chart_development(data, allow_float=allow_float, chart_type='total default', max_y_labels=max_y_labels, style=style, x_label=x_label)
-        self.render_chart_development(data, allow_float=allow_float, chart_type='total stacked', max_y_labels=max_y_labels, style=style, x_label=x_label)
-        self.render_chart_development(data, allow_float=allow_float, chart_type='rate default',  max_y_labels=max_y_labels, style=style, x_label=x_label)
-        self.render_chart_development(data, allow_float=allow_float, chart_type='rate stacked',  max_y_labels=max_y_labels, style=style, x_label=x_label)
-        self.render_chart_development(data, allow_float=allow_float, average_range=average_range, chart_type='rate default average', max_y_labels=max_y_labels, style=style, x_label=x_label)
-        self.render_chart_development(data, allow_float=allow_float, average_range=average_range, chart_type='rate stacked average', max_y_labels=max_y_labels, style=style, x_label=x_label)
+        for chart_type in self.CHART_TYPE_LIST:
+            self.render_chart_development(
+                data,
+                allow_float=allow_float,
+                average_range=average_range,
+                chart_type=chart_type,
+                max_dots=max_dots,
+                max_y_labels=max_y_labels, 
+                style=style,
+                x_label=x_label
+            )
+        
+        # Report
         notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
 
@@ -235,23 +241,14 @@ class RenderService():
         notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()))
 
 
-    def render_chart_development(self, data, allow_float=False, average_range=None, chart_type='total default', max_y_labels=15, max_dots=100, style=DefaultStyle, x_label='date'):
+    def render_chart_development(self, data, allow_float=False, average_range=None, chart_type='total default', max_dots=100, max_y_labels=15, style=DefaultStyle, x_label='date'):
         """ Function: Kanji Development Analysis """
         # Chart Type Check
-        chart_types = {
-            'total default': 110,
-            'total stacked': 120,
-            'rate default': 210,
-            'rate stacked': 220,
-            'rate default average': 211,
-            'rate stacked average': 221
-        }
-
-        if chart_type not in chart_types:
+        if chart_type not in self.CHART_TYPE_LIST:
             error('Invalid chart type found. Aborting chart creation process.')
             return
 
-        # Chart Creation
+        # Chart Initiation
         if 'default' in chart_type:
             chart = pygal.Line()
         elif 'stacked' in chart_type:
@@ -266,6 +263,7 @@ class RenderService():
         if 'total' in chart_type:
             for i in range(len(columns)):
                 chart.add(columns[i], [{'value': data[j][i + 1], 'node': {'r': (j % dots_every == 0 or j == len(data) - 1) * 1.5}} for j in range(len(data))])
+
         elif 'rate' in chart_type:
             data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(columns) + 1)]
             if 'average' not in chart_type:
@@ -346,17 +344,13 @@ class RenderService():
         elif chart_type == 'rate stacked average':
             data_max = ceil(max([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
             data_min = floor(min([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
-
+        
         chart.y_labels = self.calculate_y_labels(data_min, data_max, allow_float=allow_float, max_y_labels=max_y_labels)
 
         # Chart Legends
         chart.legend_at_bottom = True
         chart.legend_at_bottom_columns = 6
         chart.legend_box_size = 16
-
-        # Chart Interpolations
-        if 'total' in chart_type or 'average' in chart_type:
-            chart.interpolate = 'cubic'
 
         # Chart Render
         chart.style = style

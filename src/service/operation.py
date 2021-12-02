@@ -38,14 +38,15 @@ class OperationService:
         self.storage = storage
         self.render_service = RenderService(storage)
 
+
     def execute(self, command: Command) -> None:
-        exec('self.operate_{}(command)'.format(command.name))
-        # try:
-        #     exec('self.operate_{}(command)'.format(command.name))
-        # except AttributeError:
-        #     print()
-        #     error('Command name \'{}\' does not exist.'.format(command.name))
+        try:
+            exec('self.operate_{}(command)'.format(command.name))
+        except AttributeError:
+            print()
+            error('Command name \'{}\' does not exist.'.format(command.name))
     
+
     def operate_append(self, command: Command) -> None:
         """ Function: Operation Code 'A' (Add Data) """
         print()
@@ -119,14 +120,15 @@ class OperationService:
                 notice('Opening chart files.')
             except (FileNotFoundError, OSError, PermissionError):
                 error('Chart files opening error')
-            return
+            finally:
+                return
 
         # Step 1: -average argument
         average_range = None
-        if command.contains_argument('-average'):
+        if command.contains_argument('-average-range'):
             # Test for valid format
             try:
-                average_range = int(command.get_argument('-average').value)
+                average_range = int(command.get_argument('-average-range').value)
             except (IndexError, ValueError):
                 error('Average range must be an integer.')
                 error('Aborting chart creation process.')
@@ -142,11 +144,21 @@ class OperationService:
                 error('Duration must be an integer.')
                 error('Aborting chart creation process.')
                 return
+        
+        # Step 3: -max-dots argument
+        max_dots = 100
+        if command.contains_argument('-max-dots'):
+            try:
+                max_dots = int(command.get_argument('-max-dots').value)
+            except (IndexError, ValueError):
+                error('Maximum dots must be an integer.')
+                error('Aborting chart creation process.')
+                return
 
-        # Step 3: -max-y argument
+        # Step 4: -max-y argument
         max_y_labels = 15
         if command.contains_argument('-max-y'):
-            # Step 3.1 - Test for valid format
+            # Step 4.1 - Test for valid format
             try:
                 max_y_labels = int(command.get_argument('-max-y').value)
             except (IndexError, ValueError):
@@ -154,16 +166,16 @@ class OperationService:
                 error('Aborting chart creation process.')
                 return
             
-            # Step 3.2 - Test for valid requirements
+            # Step 4.2 - Test for valid requirements
             if not (max_y_labels >= 2):
                 error('Maximum y labels must be an integer at least 2.')
                 error('Aborting chart creation process.')
                 return
         
-        # Step 4: -style argument
+        # Step 5: -style argument
         style = 'DefaultStyle'
         if command.contains_argument('-style'):
-            # Step 4.1.1 - Test for valid format
+            # Step 5.1.1 - Test for valid format
             try:
                 style = command.get_argument('-style').value
             except (IndexError, ValueError):
@@ -171,7 +183,7 @@ class OperationService:
                 error('Aborting chart creation process.')
                 return
 
-            # Step 4.1.2 - Test for valid requirements
+            # Step 5.1.2 - Test for valid requirements
             if style not in STYLES:
                 error('Invalid style.')
                 error('Aborting chart creation process.')
@@ -188,10 +200,10 @@ class OperationService:
             notice('Default style is found in \'settings.py\', now proceeding to chart creation.')
             notice('Style \'{}\' will be used in chart creation.'.format(DEFAULT_STYLE))
 
-        # Step 5: -x-label argument
+        # Step 6: -x-label argument
         x_label = 'date'
         if command.contains_argument('-x-label'):
-            # Step 5.1 - Test for valid format
+            # Step 6.1 - Test for valid format
             try:
                 x_label = command.get_argument('-x-label').value
             except (IndexError, ValueError):
@@ -199,25 +211,26 @@ class OperationService:
                 error('Aborting chart creation process.')
                 return
             
-            # Step 5.2 - Test for valid requirements
+            # Step 6.2 - Test for valid requirements
             if x_label not in ('date', 'count', 'both'):
                 error('X-label type must be either \'date\', \'count\', or \'both\'')
                 error('Aborting chart creation process.')
                 return
             
-        # Step 6: Render charts
+        # Step 7: Render charts
         self.render_service.render_all(
             allow_float=command.contains_argument('-allow-float'),
             average_range=average_range,
             days=days,
             is_dynamic=command.contains_argument('-dynamic'),
             is_today=command.contains_argument('-today'),
+            max_dots=max_dots,
             max_y_labels=max_y_labels,
             style=style,
             x_label=x_label
         )
 
-        # Step 7: -open argument
+        # Step 8: -open argument
         if command.contains_argument('-open'):
             try:
                 os.open('charts/*')
