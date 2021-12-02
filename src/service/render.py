@@ -17,6 +17,8 @@ from src.util.calculation import average
 import numpy
 import pygal
 
+from src.util.transform import transpose
+
 
 class RenderService():
     def __init__(self, storage: Storage) -> None:
@@ -259,16 +261,27 @@ class RenderService():
         while len(data)/dots_every > max_dots:
             dots_every += 1
 
+        get_dot_data = lambda _value, _i, _len: {
+            'value': _value,
+            'node': {
+                'r': (_i % dots_every == 0 or _i == _len - 1) * 2
+            }
+        }
+        get_dot_data_list = lambda _data: [
+            get_dot_data(_data[i], i, len(_data)) for i in range(len(_data))
+        ]
+
         columns = self.storage.get_columns()
         if 'total' in chart_type:
             for i in range(len(columns)):
-                chart.add(columns[i], [{'value': data[j][i + 1], 'node': {'r': (j % dots_every == 0 or j == len(data) - 1) * 1.5}} for j in range(len(data))])
+                chart.add(columns[i], get_dot_data_list(transpose(data)[1:][i]))
 
         elif 'rate' in chart_type:
             data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(columns) + 1)]
+
             if 'average' not in chart_type:
                 for i in range(len(columns)):
-                    chart.add(columns[i], data_rate[i])
+                    chart.add(columns[i], get_dot_data_list(data_rate[i]))
             else:
                 data_average = list()
                 for i in range(len(columns)):
@@ -283,7 +296,7 @@ class RenderService():
                             elif average_range <= j:
                                 temp.append(round(average(data_rate[i][j - average_range + 1:j + 1]), 2))
 
-                    chart.add(columns[i], temp)
+                    chart.add(columns[i], get_dot_data_list(temp))
                     data_average.append(temp)
 
         # Chart Titles
@@ -352,20 +365,19 @@ class RenderService():
         chart.legend_at_bottom_columns = 6
         chart.legend_box_size = 16
 
-        # Chart Render
+        # Chart Style
         chart.style = style
         if 'default' in chart_type:
-            chart.dots_size = 2.5
             chart.fill = False
             chart.stroke_style = {
-                'width': 3,
+                'width': 2.5,
                 'linecap': 'round',
                 'linejoin': 'round'
             }
         elif 'stacked' in chart_type:
-            chart.dots_size = 1.5
             chart.fill = True
 
+        # Chart Render
         file_name = '{}_development'.format(self.storage.name.lower())
         if 'total' in chart_type:
             file_name += '_total'
