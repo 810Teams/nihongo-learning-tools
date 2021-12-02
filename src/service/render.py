@@ -22,6 +22,7 @@ from datetime import datetime
 from datetime import timedelta
 from math import ceil, floor
 from time import perf_counter
+from src.model.storage import Storage
 
 from src.util.logging import error
 from src.util.logging import notice
@@ -36,21 +37,21 @@ NAME = str()
 COLUMNS = list()
 
 class RenderService():
-    def __init__(self) -> None:
-        pass
+    def __init__(self, storage: Storage) -> None:
+        self.storage = storage
 
-    def analysis(self, storage_main, allow_float=False, average_range=None, duration=0, is_dynamic=False, is_today=False, max_y_labels=15, style='DefaultStyle', x_label='date'):
+    def render_all(self, allow_float=False, average_range=None, days=0, is_dynamic=False, is_today=False, max_y_labels=15, style='DefaultStyle', x_label='date'):
         ''' Function: Analysis '''
         time_start = perf_counter()
 
         global NAME, COLUMNS
-        NAME = storage_main.name
-        COLUMNS = storage_main.storage.columns[1:]
+        NAME = self.storage.name
+        COLUMNS = self.storage.data.columns[1:]
 
-        data = self.clean(numpy.array(storage_main.storage).tolist())
-        data = self.manipulate(data, duration=duration, is_dynamic=is_dynamic, is_today=is_today)
+        data = self.clean(numpy.array(self.storage.data).tolist())
+        data = self.manipulate(data, days=days, is_dynamic=is_dynamic, is_today=is_today)
 
-        if not self.validate_arguments(data, average_range=average_range, duration=duration, is_dynamic=is_dynamic, max_y_labels=max_y_labels, style=style, is_today=is_today):
+        if not self.validate_arguments(data, average_range=average_range, days=days):
             return
 
         # Analysis
@@ -66,7 +67,7 @@ class RenderService():
         self.render_chart_development(data, allow_float=allow_float, chart_type='rate default',  max_y_labels=max_y_labels, style=style, x_label=x_label)
         self.render_chart_development(data, allow_float=allow_float, chart_type='rate stacked',  max_y_labels=max_y_labels, style=style, x_label=x_label)
         self.render_chart_development(data, allow_float=allow_float, average_range=average_range, chart_type='rate default average', max_y_labels=max_y_labels, style=style, x_label=x_label)
-        self.render_chart_development(data,allow_float=allow_float,  average_range=average_range, chart_type='rate stacked average', max_y_labels=max_y_labels, style=style, x_label=x_label)
+        self.render_chart_development(data, allow_float=allow_float, average_range=average_range, chart_type='rate stacked average', max_y_labels=max_y_labels, style=style, x_label=x_label)
         notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
 
@@ -85,7 +86,7 @@ class RenderService():
         return data
 
 
-    def manipulate(self, data, duration=0, is_dynamic=False, is_today=False):
+    def manipulate(self, data, days=0, is_dynamic=False, is_today=False):
         ''' Function: Manipulate Data '''
         # Step 1 - Sort
         data.sort(key=lambda i: i[0])
@@ -104,13 +105,13 @@ class RenderService():
             data = self.today_fill(data)
 
         # Step 5 - Time Filtering
-        data = data[-1 * duration:]
+        data = data[-1 * days:]
 
         # Step 6 - Return
         return data
 
 
-    def validate_arguments(self, data, average_range=None, duration=0, is_dynamic=False, max_y_labels=15, style='DefaultStyle', is_today=False):
+    def validate_arguments(self, data, average_range=None, days=0):
         ''' Function: Validates arguments which depends on the length of cleaned data '''
         # Step 1: -average argument
         if average_range == None:
@@ -121,7 +122,7 @@ class RenderService():
             return False
         
         # Step 2: -duration argument
-        if not (-len(data) + 2 <= duration <= len(data) and duration != 1):
+        if not (-len(data) + 2 <= days <= len(data) and days != 1):
             error('Duration must be an integer from {} to {}, and not 1.'.format(-len(data) + 2, len(data)))
             error('Aborting chart creation process.')
             return False

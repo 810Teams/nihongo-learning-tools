@@ -36,18 +36,24 @@ STYLES = (
 class OperationService:
     def __init__(self, storage: Storage) -> None:
         self.storage = storage
-        self.render_service = RenderService()
+        self.render_service = RenderService(storage)
 
     def execute(self, command: Command) -> None:
-        exec('self.operate_{}(command)'.format(command.code))
+        exec('self.operate_{}(command)'.format(command.name))
+        # try:
+        #     exec('self.operate_{}(command)'.format(command.name))
+        # except AttributeError:
+        #     print()
+        #     error('Command name \'{}\' does not exist.'.format(command.name))
     
     def operate_append(self, command: Command) -> None:
         """ Function: Operation Code 'A' (Add Data) """
+        print()
+
         if command.contains_argument('-add'):
             notice('Please input increasing data in a,b,c format.')
             print()
             temp = input('(Input) ')
-            print()
 
             try:
                 temp = [i.replace(' ', '') for i in temp.split(',')]
@@ -76,7 +82,6 @@ class OperationService:
             notice('Please input custom formatted data.')
             print()
             temp = input('(Input) ')
-            print()
 
             try:
                 self.storage.append(custom_append_head(temp, custom_id))
@@ -88,7 +93,6 @@ class OperationService:
             notice('Please input data in a,b,c format.')
             print()
             temp = input('(Input) ')
-            print()
 
             try:
                 temp = [i.replace(' ', '') for i in temp.split(',')]
@@ -106,6 +110,8 @@ class OperationService:
 
     def operate_chart(self, command: Command) -> None:
         """ Function: Operation Code 'C' (Create Charts) """
+        print()
+        
         # Step 0: -open-only argument
         if command.contains_argument('-open-only'):
             try:
@@ -128,18 +134,18 @@ class OperationService:
             average_range = None
 
         # Step 2: -days argument
+        days = 0
         if command.contains_argument('-days'):
             # Test for valid format
             try:
-                duration = int(command.get_argument('-days').value)
+                days = int(command.get_argument('-days').value)
             except (IndexError, ValueError):
                 error('Duration must be an integer.')
                 error('Aborting chart creation process.')
                 return
-        else:
-            duration = 0
 
         # Step 3: -max-y argument
+        max_y_labels = 15
         if command.contains_argument('-max-y'):
             # Step 3.1 - Test for valid format
             try:
@@ -154,8 +160,6 @@ class OperationService:
                 error('Maximum y labels must be an integer at least 2.')
                 error('Aborting chart creation process.')
                 return
-        else:
-            max_y_labels = 15
         
         # Step 4: -style argument
         style = 'DefaultStyle'
@@ -204,11 +208,10 @@ class OperationService:
             x_label = 'date'
 
         # Step 6: Render charts
-        self.render_service.analysis(
-            self.storage,
+        self.render_service.render_all(
             allow_float=command.contains_argument('-allow-float'),
             average_range=average_range,
-            duration=duration,
+            days=days,
             is_dynamic=command.contains_argument('-dynamic'),
             is_today=command.contains_argument('-today'),
             max_y_labels=max_y_labels,

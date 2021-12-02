@@ -44,34 +44,30 @@ class ProgressTrackerApplication:
     def __init__(self) -> None:
         self.operation_service = OperationService(None)
 
-    def run(self):
+    def run(self) -> None:
         """ Main Function """
-        self.show_app_title()
-
-        if isinstance(DEFAULT_STORAGE, str):
-            storage_main = Storage(DEFAULT_STORAGE) 
-        else:
-            notice('Please Input Storage Name')
-            print()
-            storage_main = Storage(input('(Input) ').strip())
-            print()
-        
-        if storage_main.try_load():
-            notice('Default storage is set, proceeding to storage loading.')
-            notice('Storage \'{}\' is loaded.'.format(storage_main.name))
-        storage_main.load()
-
-        # show_operations()
-        self.operation_service.storage = storage_main
-        self.start_operating(storage_main)
-
-
-    def show_app_title(self):
-        """ Function: Show application title """
         print()
         print('- {} -'.format(APP_NAME))
         print(('by {} ({})'.format(AUTHOR, VERSION)).center(len(APP_NAME)))
-        print()
+
+        if isinstance(DEFAULT_STORAGE, str):
+            storage = Storage(DEFAULT_STORAGE) 
+        else:
+            print()
+            notice('Please Input Storage Name')
+            print()
+            storage = Storage(input('(Input) ').strip())
+            
+        if storage.try_load():
+            print()
+            notice('Default storage is set, proceeding to storage loading.')
+            notice('Storage \'{}\' is loaded.'.format(storage.name))
+        storage.load()
+
+        # show_operations()
+        self.operation_service.storage = storage
+        self.operation_service.render_service.storage = storage
+        self.start()
 
 
     # def show_operations():
@@ -86,24 +82,22 @@ class ProgressTrackerApplication:
     #             print('    {}{}: {}'.format(j.name, ' ' * (max([len(k.name) for k in i.args]) - len(j.name) + 1), j.description))
 
 
-    def start_operating(self, storage_main):
+    def start(self) -> None:
         """ Function: Start operating application """
         while True:
-            print()
             try:
-                line = input('(Command) ')
                 print()
-                self.operate(line)
+                line = input('(Command) ')
+
+                if line.strip() == str():
+                    continue
+
+                self.operation_service.execute(extract_command_and_arguments(line))
             except IndexError:
                 error('Invalid action format. Please try again.')
+        
 
-
-    def operate(self, line: str):
-        """ Function: Operate a specific action """
-        self.operation_service.execute(extract_command_and_arguments(line))
-
-
-def main():
+def main() -> None:
     application = ProgressTrackerApplication()
     application.run()
 

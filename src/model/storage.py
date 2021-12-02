@@ -14,19 +14,19 @@ import os
 class Storage:
     def __init__(self, name):
         self.name = name
-        self.storage = None
+        self.data = None
 
-    def append(self, data, show_notice=True):
+    def append(self, new_data, show_notice=True):
         """ User Method: Append Data """
         time = str(datetime.now())
-        self.storage = self.storage.append(pandas.DataFrame([[time[0:len(time)-7]] + data], columns=list(self.storage.columns)))
+        self.data = self.data.append(pandas.DataFrame([[time[0:len(time)-7]] + new_data], columns=list(self.data.columns)))
 
-        notice('Data {} has been added to the storage.'.format(data), show=show_notice)
+        notice('Data {} has been added to the storage.'.format(new_data), show=show_notice)
 
     def load(self, show_notice=True, template=None):
         """ Indirect User Method: Load Storage """
         try:
-            self.storage = pandas.read_csv('data/' + self.name + '.csv')
+            self.data = pandas.read_csv('data/' + self.name + '.csv')
         except FileNotFoundError:
             notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(self.name), show=show_notice)
 
@@ -41,7 +41,7 @@ class Storage:
     def reload(self, show_notice=True):
         """ Indirect User Method: Reload Storage """
         try:
-            self.storage = pandas.read_csv('data/' + self.name + '.csv')
+            self.data = pandas.read_csv('data/' + self.name + '.csv')
             notice('Storage \'{}\' is reloaded.'.format(self.name), show=show_notice)
         except FileNotFoundError:
             self.load()
@@ -52,32 +52,32 @@ class Storage:
             os.remove(self.name + '.csv')
         except FileNotFoundError:
             pass
-        self.storage.to_csv('data/' + self.name + '.csv', index=None, header=True)
+        self.data.to_csv('data/' + self.name + '.csv', index=None, header=True)
 
         notice('Storage \'{}\' saved successfully.'.format(self.name), show=show_notice)
         self.reload(show_notice=False)
 
     def view(self):
         """ User Method: View Storage """
-        print(self.storage)
+        print(self.data)
 
     def setup(self, columns, show_notice=True):
         """ System Method: View Storage """
         try:
-            self.storage = pandas.DataFrame([], columns=['timestamp'] + columns)
+            self.data = pandas.DataFrame([], columns=['timestamp'] + columns)
         except:
             error('Something unexpected happened. Please try again.', show=show_notice)
 
     def try_load(self):
         """ System Method: Try loading a storage """
         try:
-            if self.storage == None:
-                self.storage = pandas.read_csv('data/' + self.name + '.csv')
-                self.storage = None
+            if self.data == None:
+                self.data = pandas.read_csv('data/' + self.name + '.csv')
+                self.data = None
             return True
         except FileNotFoundError:
             return False
 
     def to_list(self):
         """ System Method: Returns a list of storage data """
-        return numpy.array(self.storage).tolist()
+        return numpy.array(self.data).tolist()

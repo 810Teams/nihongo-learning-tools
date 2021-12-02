@@ -8,14 +8,14 @@ from src.util.string import compare_ignore_case
 
 class Command:
     def __init__(self, code:str, value=None, argument_list:list=list()):
-        self.code = code
+        self.name = code
         self.value = value
         self.argument_list = argument_list
 
     def __str__(self) -> str:
         if self.value is None:
-            return '{}, [{}]'.format(self.code, self.argument_list)
-        return '{}: {}, [{}]'.format(self.code, self.value, self.argument_list)
+            return '{}, [{}]'.format(self.name, self.argument_list)
+        return '{}: {}, [{}]'.format(self.name, self.value, self.argument_list)
 
     def get_argument(self, argument_name: str) -> Argument:
         for i in self.argument_list:
