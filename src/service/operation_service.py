@@ -3,7 +3,8 @@
 """
 
 from custom.append import custom_append_head
-from src.app_data import SUPPORTED_STYLES
+from src.model.operation import Operation
+from src.core.app_data import OPERATION_LIST, SUPPORTED_STYLES
 from src.model.command import Command
 from src.model.storage import Storage
 from src.service.render_service import RenderService
@@ -20,11 +21,11 @@ class OperationService:
 
 
     def execute(self, command: Command) -> None:
-        try:
-            exec('self.operate_{}(command)'.format(command.name))
-        except AttributeError:
+        if not self.validate_command(command):
             error('Command \'{}\' error.'.format(command.name), start='\n')
-    
+
+        exec('self.operate_{}(command)'.format(command.name))
+
 
     def operate_append(self, command: Command) -> None:
         """ Function: Operation Code 'A' (Add Data) """
@@ -78,7 +79,7 @@ class OperationService:
                 error('Invalid value format. Please try again.', start='\n')
 
 
-    def operate_chart(self, command: Command) -> None: 
+    def operate_chart(self, command: Command) -> None:
         """ Function: Operation Code 'C' (Create Charts) """
         # Step 0: -open-only argument
         if command.contains_argument('-open-only'):
@@ -111,7 +112,7 @@ class OperationService:
                 error('Duration must be an integer.', start='\n')
                 error('Aborting chart creation process.')
                 return
-        
+
         # Step 3: -max-dots argument
         max_dots = 100
         if command.contains_argument('-max-dots'):
@@ -132,13 +133,13 @@ class OperationService:
                 error('Maximum y labels must be an integer.', start='\n')
                 error('Aborting chart creation process.')
                 return
-            
+
             # Step 4.2 - Test for valid requirements
             if not (max_y_labels >= 2):
                 error('Maximum y labels must be an integer at least 2.', start='\n')
                 error('Aborting chart creation process.')
                 return
-        
+
         # Step 5: -style argument
         style = 'DefaultStyle'
         if command.contains_argument('-style'):
@@ -177,13 +178,13 @@ class OperationService:
                 error('X-label type must be a string.', start='\n')
                 error('Aborting chart creation process.')
                 return
-            
+
             # Step 6.2 - Test for valid requirements
             if x_label not in ('date', 'count', 'both'):
                 error('X-label type must be either \'date\', \'count\', or \'both\'', start='\n')
                 error('Aborting chart creation process.')
                 return
-            
+
         # Step 7: Render charts
         self.render_service.render_all(
             allow_float=command.contains_argument('-allow-float'),
@@ -243,3 +244,20 @@ class OperationService:
         """ Function: Operation Code 'X' (Exit) """
         notice('Exitting application.', start='\n')
         exit()
+
+
+    def validate_command(self, command: Command) -> bool:
+        operation = self.find_operation(command)
+
+        if operation is None:
+            return False
+
+        return operation.validate_command(command)
+
+
+    def find_operation(self, command: Command) -> Operation:
+        operation: Operation
+        for operation in OPERATION_LIST:
+            if command.name == operation.name:
+                return operation
+        return None

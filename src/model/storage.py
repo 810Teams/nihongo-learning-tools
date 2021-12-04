@@ -28,8 +28,6 @@ class Storage:
         try:
             self.data = pandas.read_csv('data/' + self.name + '.csv')
         except FileNotFoundError:
-            notice('Storage \'{}\' does not exist. Proceeding to storage set up.'.format(self.name))
-
             if template in TEMPLATES:
                 Storage.setup(self, TEMPLATES[template])
             else:

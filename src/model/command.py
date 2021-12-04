@@ -7,8 +7,8 @@ from src.util.string import compare_ignore_case
 
 
 class Command:
-    def __init__(self, code:str, value=None, argument_list:list=list()):
-        self.name = code
+    def __init__(self, name:str, value=None, argument_list:list=list()):
+        self.name = name
         self.value = value
         self.argument_list = argument_list
 
@@ -21,7 +21,7 @@ class Command:
         for i in self.argument_list:
             if isinstance(i, Argument) and compare_ignore_case(argument_name, i.name):
                 return i
-        return None        
+        return None
 
     def contains_argument(self, argument_name: str) -> bool:
         return self.get_argument(argument_name) is not None

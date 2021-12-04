@@ -25,14 +25,11 @@ class RenderService():
         self.storage = storage
 
         self.CHART_TYPE_LIST = [
-            'total default',
-            'total stacked',
-            'rate default',
-            'rate stacked',
-            'rate default average',
-            'rate stacked average'
+            'total default', 'total stacked',
+            'rate default', 'rate stacked',
+            'rate default average', 'rate stacked average'
         ]
-    
+
     def render_all(
         self,
         allow_float=False,
@@ -62,7 +59,7 @@ class RenderService():
         except (NameError, SyntaxError, ImportError):
             error('Invalid style name. \'DefaultStyle\' will be used instead.', start='\n')
             style = DefaultStyle
-        
+
         # Rendering
         self.render_chart_total(data, allow_float=allow_float, max_y_labels=max_y_labels, style=style)
         for chart_type in self.CHART_TYPE_LIST:
@@ -72,11 +69,11 @@ class RenderService():
                 average_range=average_range,
                 chart_type=chart_type,
                 max_dots=max_dots,
-                max_y_labels=max_y_labels, 
+                max_y_labels=max_y_labels,
                 style=style,
                 x_label=x_label
             )
-        
+
         # Report
         notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
@@ -128,13 +125,13 @@ class RenderService():
             error('Average range must be an integer from {} to {}.'.format(1, len(data) - 1))
             error('Aborting chart creation process.')
             return False
-        
+
         # Step 2: -duration argument
         if not (-len(data) + 2 <= days <= len(data) and days != 1):
             error('Duration must be an integer from {} to {}, and not 1.'.format(-len(data) + 2, len(data)))
             error('Aborting chart creation process.')
             return False
-        
+
         return True
 
 
@@ -157,7 +154,7 @@ class RenderService():
             start_date = self.add_day_to_date(start_date, 1)
             data += missing_dates
             missing_dates = []
-        
+
         # Step 2: Return
         return data
 
@@ -167,7 +164,7 @@ class RenderService():
         missing_dates = [list()]
         start_date = data[0][0]
         end_date = data[-1][0]
-        
+
         # Step 1: Determines missing dates
         while start_date != end_date:
             if start_date not in [i[0] for i in data]:
@@ -175,7 +172,7 @@ class RenderService():
             elif len(missing_dates[-1]) > 0:
                 missing_dates.append(list())
             start_date = self.add_day_to_date(start_date, 1)
-        
+
         if len(missing_dates[-1]) == 0:
             missing_dates = missing_dates[:-1]
 
@@ -244,7 +241,17 @@ class RenderService():
         notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()))
 
 
-    def render_chart_development(self, data, allow_float=False, average_range=None, chart_type='total default', max_dots=100, max_y_labels=15, style=DefaultStyle, x_label='date'):
+    def render_chart_development(
+        self,
+        data,
+        allow_float=False,
+        average_range=None,
+        chart_type='total default',
+        max_dots=100,
+        max_y_labels=15,
+        style=DefaultStyle,
+        x_label='date'
+    ):
         """ Function: Kanji Development Analysis """
         # Chart Type Check
         if chart_type not in self.CHART_TYPE_LIST:
@@ -358,7 +365,7 @@ class RenderService():
         elif chart_type == 'rate stacked average':
             data_max = ceil(max([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
             data_min = floor(min([sum([data_average[i][j] for i in range(len(data_average))]) for j in range(len(data_average[0]))]))
-        
+
         chart.y_labels = self.calculate_y_labels(data_min, data_max, allow_float=allow_float, max_y_labels=max_y_labels)
 
         # Chart Legends
@@ -398,7 +405,7 @@ class RenderService():
         """ Function: Calculate """
         data_min = floor(data_min)
         data_max = ceil(data_max)
-        
+
         if allow_float:
             data_min *= 100
             data_max *= 100
@@ -411,7 +418,7 @@ class RenderService():
             data_range = list(range(0, data_min - preset[i % 3] * 10**(i // 3), -1 * preset[i % 3] * 10**(i // 3)))
             data_range += list(range(0, data_max + preset[i % 3] * 10**(i // 3), preset[i % 3] * 10**(i // 3)))
             i += 1
-            
+
         data_range.sort()
 
         if allow_float:
