@@ -1,114 +1,77 @@
-'''
+"""
     `main.py`
-'''
+"""
 
-from src.loaders import load_default_storage
-from src.operations import Operation
-from src.operations import Argument
-from src.operations import operate_append
-from src.operations import operate_chart
-from src.operations import operate_help
-from src.operations import operate_reload
-from src.operations import operate_save
-from src.operations import operate_view
-from src.operations import operate_exit
-from src.storage import Storage
-from src.utils import error
-from src.utils import notice
+from src.core.app_data import APP_NAME, AUTHOR, OPERATION_LIST, VERSION
+from src.model.storage import Storage
+from src.service.operation_service import OperationService
+from src.util.logging import notice
+from src.util.reader import extract_command_and_arguments
+from settings import DEFAULT_STORAGE
 
-import numpy
-
-APP_NAME = 'Progress Tracker Application'
-AUTHOR = '810Teams'
-VERSION = 'v1.3.2'
-OPERATIONS = [
-    Operation('a', 'append', 'Append Data', [
-        Argument('-add', 'Add mode'),
-        Argument('-cus INTEGER', 'Custom written method')
-    ]),
-    Operation('c', 'chart', 'Create Charts', [
-        Argument('-average INTEGER', 'Average (Default: All)'),
-        Argument('-days INTEGER', 'Duration (Default: All)'),
-        Argument('-max-y INTEGER', 'Maximum y-labels (Default: 15)'),
-        Argument('-style STYLE_NAME', 'Style'),
-        Argument('-x-label [date,count,both]', 'X-label type (Default: date)'),
-        Argument('-allow-float', 'Allow floating points'),
-        Argument('-dynamic', 'Dynamic Fill'),
-        Argument('-open', 'Open'),
-        Argument('-open-only', 'Open Only'),
-        Argument('-today', 'Today')
-    ]),
-    Operation('h', 'help', 'Help', []),
-    Operation('r', 'reload', 'Reload Storage', []),
-    Operation('s', 'save', 'Save Storage', []),
-    Operation('v', 'view', 'View Storage', [
-        Argument('-open', 'Open')
-    ]),
-    Operation('x', 'exit', 'Exit Application', []),
-]
+import sys
 
 
-def main():
-    ''' Main Function '''
-    show_app_title()
+class ProgressTrackerApplication:
+    def __init__(self) -> None:
+        self.operation_service = None
 
-    if load_default_storage():
-        storage_main = Storage(load_default_storage())
-    else:
-        notice('Please Input Storage Name')
+
+    def run(self) -> None:
+        """ Main Function """
+        # Title
         print()
-        storage_main = Storage(input('(Input) ').strip())
-        print()
+        print('- {} -'.format(APP_NAME))
+        print(('by {} ({})'.format(AUTHOR, VERSION)).center(len(APP_NAME)))
 
-    if storage_main.try_load():
-        notice('File \'DEFAULT_STORAGE.txt\' is found. Proceeding to storage loading.')
-        notice('Storage \'{}\' is loaded.'.format(storage_main.name))
-    storage_main.load()
-
-    show_operations()
-    start_operating(storage_main)
-
-
-def show_app_title():
-    ''' Function: Show application title '''
-    print()
-    print('- {} -'.format(APP_NAME))
-    print(('by {} ({})'.format(AUTHOR, VERSION)).center(len(APP_NAME)))
-    print()
-
-
-def show_operations():
-    ''' Function: Show operation list '''
-    print()
-    print('- Operation List -')
-
-    for i in OPERATIONS:
-        # print('[{}] {}'.format(i.command, i.title))
-        print('[{}]'.format(i.command))
-        for j in i.args:
-            print('    {}{}: {}'.format(j.name, ' ' * (max([len(k.name) for k in i.args]) - len(j.name) + 1), j.description))
-
-
-def start_operating(storage_main):
-    ''' Function: Start operating application '''
-    while True:
-        print()
-        try:
-            action = [i for i in input('(Command) ').split()]
+        # Storage naming
+        if len(sys.argv) > 1:
+            storage = Storage(sys.argv[1])
+        elif isinstance(DEFAULT_STORAGE, str):
+            storage = Storage(DEFAULT_STORAGE)
+        else:
             print()
-            operate(storage_main, action[0].lower(), action[1:])
-        except IndexError:
-            error('Invalid action format. Please try again.')
+            notice('Please input the name of the storage')
+            print()
+            storage = Storage(input('(Input) ').strip())
+
+        # Storage loading
+        if storage.try_load():
+            notice('Storage \'{}\' already exists, proceeding to storage loading.'.format(storage.name), start='\n')
+        else:
+            notice('Storage \'{}\' does not exist yet and requires set-up.'.format(storage.name), start='\n')
+            notice('Please input the columns of the storage')
+            print()
+            columns = input('(Input) ').strip().replace(' ', str()).split(',')
+            storage.setup(columns)
+
+        storage.load()
+        notice('Storage \'{}\' is loaded.'.format(storage.name))
+
+        # Start
+        print()
+        for operation in OPERATION_LIST:
+            print(operation)
+
+        self.operation_service = OperationService(storage)
+        self.start()
 
 
-def operate(storage_main, action, args):
-    ''' Function: Operate a specific action '''
-    try:
-        eval('operate_{}(storage_main, args)'.format(action.lower()))
-    except (NameError, SyntaxError):
-        try:
-            eval('operate_{}(storage_main, args)'.format([i.command for i in OPERATIONS if i.code == action.lower()][0]))
-        except (IndexError, NameError, SyntaxError):
-            error('Invalid action. Please try again.')
+    def start(self) -> None:
+        """ Function: Start operating application """
+        while True:
+            print()
+            line = input('(Command) ')
+
+            if line.strip() == str():
+                continue
+
+            self.operation_service.execute(extract_command_and_arguments(line))
+
+
+def main() -> None:
+    application = ProgressTrackerApplication()
+    application.run()
+
 
 main()
