@@ -3,25 +3,19 @@
 """
 
 
-from settings import SHOW_LOGS
-
-
-def error(message, end='\n', start=str()):
+def error(message: str, end: str='\n', start: str=str()) -> None:
     """ Display error message """
-    if SHOW_LOGS:
-        print(start, end=str())
-        print('[ERROR]', message, end=end)
+    print(start, end=str())
+    print('[ERROR]', message, end=end)
 
 
-def log(message, end='\n', start=str()):
+def log(message: str, end: str='\n', start: str=str()) -> None:
     """ Display log message """
-    if SHOW_LOGS:
-        print(start, end=str())
-        print('[LOG]', message, end=end)
+    print(start, end=str())
+    print('[LOG]', message, end=end)
 
 
-def notice(message, end='\n', start=str()):
+def notice(message: str, end: str='\n', start: str=str()) -> None:
     """ Display notice message """
-    if SHOW_LOGS:
-        print(start, end=str())
-        print('[NOTICE]', message, end=end)
+    print(start, end=str())
+    print('[NOTICE]', message, end=end)

@@ -2,7 +2,7 @@
     `src/service/render.py`
 """
 
-from pygal.style import DefaultStyle
+from pygal.style import DefaultStyle, Style
 
 from datetime import datetime
 from datetime import timedelta
@@ -32,16 +32,16 @@ class RenderService():
 
     def render_all(
         self,
-        allow_float=False,
-        average_range=None,
-        days=0,
-        is_dynamic=False,
-        is_today=False,
-        max_dots=100,
-        max_y_labels=15,
-        style='DefaultStyle',
-        x_label='date'
-    ):
+        allow_float: bool=False,
+        average_range: int=None,
+        days: int=0,
+        is_dynamic: bool=False,
+        is_today: bool=False,
+        max_dots: int=100,
+        max_y_labels: int=15,
+        style: str='DefaultStyle',
+        x_label: str='date'
+    ) -> None:
         """ Function: Analysis """
         # Data Preparation
         time_start = perf_counter()
@@ -78,7 +78,7 @@ class RenderService():
         notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
 
-    def clean(self, data):
+    def clean(self, data: list) -> list:
         """ Function: Clean Data """
         # Step 1 - Sort
         data.sort(key=lambda i: i[0])
@@ -93,7 +93,7 @@ class RenderService():
         return data
 
 
-    def manipulate(self, data, days=0, is_dynamic=False, is_today=False):
+    def manipulate(self, data: list, days: int=0, is_dynamic: bool=False, is_today: bool=False) -> list:
         """ Function: Manipulate Data """
         # Step 1 - Sort
         data.sort(key=lambda i: i[0])
@@ -118,7 +118,7 @@ class RenderService():
         return data
 
 
-    def validate_arguments(self, data, average_range=None, days=0):
+    def validate_arguments(self, data: list, average_range: int=None, days: int=0) -> bool:
         """ Function: Validates arguments which depends on the length of cleaned data """
         # Step 1: -average argument
         if average_range != None and not (1 <= average_range <= len(data) - 1):
@@ -135,12 +135,15 @@ class RenderService():
         return True
 
 
-    def add_day_to_date(self, date_string, days):
+    def add_day_to_date(self, date_string: str, days: int) -> str:
         """ Function: Add days to date """
-        return str(datetime.strptime(date_string, '%Y-%m-%d') + timedelta(days=days)).split()[0]
+        date = datetime.strptime(date_string, '%Y-%m-%d')
+        added_days = timedelta(days=days)
+
+        return str(date + added_days).split()[0]
 
 
-    def static_fill(self, data):
+    def static_fill(self, data: list) -> list:
         """ Function: Fill missing data statically """
         missing_dates = list()
         start_date = data[0][0]
@@ -159,7 +162,7 @@ class RenderService():
         return data
 
 
-    def dynamic_fill(self, data):
+    def dynamic_fill(self, data: list) -> list:
         """ Function: Fill missing data dynamically """
         missing_dates = [list()]
         start_date = data[0][0]
@@ -195,7 +198,7 @@ class RenderService():
         return data
 
 
-    def today_fill(self, data):
+    def today_fill(self, data: list) -> list:
         """ Function: Fill date until today """
         today = str(datetime.now())
         today = today[0:len(today)-7].split()[0]
@@ -208,7 +211,7 @@ class RenderService():
         return data
 
 
-    def render_chart_total(self, data, allow_float=False, max_y_labels=15, style=DefaultStyle):
+    def render_chart_total(self, data: list, allow_float: bool=False, max_y_labels: int=15, style: Style=DefaultStyle) -> None:
         """ Function: Kanji Total Analysis """
         chart = pygal.Bar()
 
@@ -243,15 +246,15 @@ class RenderService():
 
     def render_chart_development(
         self,
-        data,
-        allow_float=False,
-        average_range=None,
-        chart_type='total default',
-        max_dots=100,
-        max_y_labels=15,
-        style=DefaultStyle,
-        x_label='date'
-    ):
+        data: list,
+        allow_float: bool=False,
+        average_range: int=None,
+        chart_type: str='total default',
+        max_dots: int=100,
+        max_y_labels: int=15,
+        style: Style=DefaultStyle,
+        x_label: str='date'
+    ) -> None:
         """ Function: Kanji Development Analysis """
         # Chart Type Check
         if chart_type not in self.CHART_TYPE_LIST:
@@ -401,7 +404,7 @@ class RenderService():
         notice('Chart \'{}\' successfully exported.'.format(file_name))
 
 
-    def calculate_y_labels(self, data_min, data_max, allow_float=False, max_y_labels=15):
+    def calculate_y_labels(self, data_min, data_max, allow_float: bool=False, max_y_labels: int=15) -> list:
         """ Function: Calculate """
         data_min = floor(data_min)
         data_max = ceil(data_max)

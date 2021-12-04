@@ -31,7 +31,7 @@ SUPPORTED_STYLES = (
 OPERATION_LIST = [
     Operation('append', code='a', value_type=str, description='Append Data', parameter_list=[
         Parameter('-add', description='Add mode'),
-        Parameter('-cus', value_type=int, description='Custom written method')
+        Parameter('-custom', value_type=int, description='Custom written method')
     ]),
     Operation('chart', code='c', description='Create Charts', parameter_list=[
         Parameter('-average', value_type=int, description='Average (Default: All)'),

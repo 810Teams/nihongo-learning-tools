@@ -15,7 +15,7 @@ class Parameter:
         message = '{}'.format(self.name)
 
         if self.value_type is not None:
-            message += ' ({})'.format(self.value_type)
+            message += ' [{}]'.format(self.value_type)
 
         if isinstance(self.description, str) and len(self.description) > 0:
             message += ' : {}'.format(self.description)

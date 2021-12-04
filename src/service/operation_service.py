@@ -23,8 +23,8 @@ class OperationService:
     def execute(self, command: Command) -> None:
         if not self.validate_command(command):
             error('Command \'{}\' error.'.format(command.name), start='\n')
-
-        exec('self.operate_{}(command)'.format(command.name))
+        else:
+            exec('self.operate_{}(command)'.format(command.name))
 
 
     def operate_append(self, command: Command) -> None:
