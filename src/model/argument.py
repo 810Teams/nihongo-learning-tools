@@ -2,11 +2,9 @@
     `src/model/argument.py`
 """
 
-from src.model.parameter import Parameter
-
 
 class Argument:
-    def __init__(self, name:str, value=None):
+    def __init__(self, name:str, value:type=None):
         self.name = name
         self.value = value
 

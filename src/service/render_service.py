@@ -60,7 +60,7 @@ class RenderService():
             exec('from pygal.style import {}'.format(style))
             style = eval(style)
         except (NameError, SyntaxError, ImportError):
-            error('Invalid style name. \'DefaultStyle\' will be used instead.')
+            error('Invalid style name. \'DefaultStyle\' will be used instead.', start='\n')
             style = DefaultStyle
         
         # Rendering
@@ -204,7 +204,8 @@ class RenderService():
         today = today[0:len(today)-7].split()[0]
 
         while data[-1][0].split()[0] != today:
-            data.append([i for i in data[-1]]) # NOTE: Uses list comprehension to prevent references
+            data_copy = [i for i in data[-1]]
+            data.append(data_copy)
             data[-1][0] = self.add_day_to_date(data[-1][0], 1)
 
         return data
@@ -247,7 +248,7 @@ class RenderService():
         """ Function: Kanji Development Analysis """
         # Chart Type Check
         if chart_type not in self.CHART_TYPE_LIST:
-            error('Invalid chart type found. Aborting chart creation process.')
+            error('Invalid chart type found. Aborting chart creation process.', start='\n')
             return
 
         # Chart Initiation
