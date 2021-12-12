@@ -34,11 +34,12 @@ OPERATION_LIST = [
         Parameter('-custom', value_type=int, description='Custom written method')
     ]),
     Operation('chart', code='c', description='Create Charts', parameter_list=[
-        Parameter('-average', value_type=int, description='Average (Default: All)'),
+        Parameter('-average-range', value_type=int, description='Average (Default: All)'),
         Parameter('-days', value_type=int, description='Duration (Default: All)'),
+        Parameter('-dots-count', value_type=int, description='Maximum dot count (Default: 101)'),
         Parameter('-max-y', value_type=int, description='Maximum y-labels (Default: 15)'),
         Parameter('-style', value_type=str, description='Style'),
-        Parameter('-x-label', value_type=str, description='X-label type (Default: date [date,count,both])'),
+        Parameter('-x-label', value_type=str, description='X-label type (Default: date) (Available: [date,count,both])'),
         Parameter('-allow-float', description='Allow floating points'),
         Parameter('-dynamic', description='Dynamic Fill'),
         Parameter('-open', description='Open'),

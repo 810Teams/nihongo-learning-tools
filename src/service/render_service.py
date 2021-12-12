@@ -2,22 +2,22 @@
     `src/service/render.py`
 """
 
+from pandas.core.indexes import base
 from pygal.style import DefaultStyle, Style
 
 from datetime import datetime
-from datetime import timedelta
 from math import ceil, floor
 from time import perf_counter
 
 from src.model.storage import Storage
 from src.util.logging import error
 from src.util.logging import notice
-from src.util.calculation import average
+from src.util.calculation import average, add_day_to_date
+from src.util.transform import transpose
+from src.util.reader import contains_row_for_date, copy_list, find_row_by_date, is_empty, is_nan
 
 import numpy
 import pygal
-
-from src.util.transform import transpose
 
 
 class RenderService():
@@ -35,9 +35,9 @@ class RenderService():
         allow_float: bool=False,
         average_range: int=None,
         days: int=0,
+        dots_count: int=100,
         is_dynamic: bool=False,
         is_today: bool=False,
-        max_dots: int=100,
         max_y_labels: int=15,
         style: str='DefaultStyle',
         x_label: str='date'
@@ -68,7 +68,7 @@ class RenderService():
                 allow_float=allow_float,
                 average_range=average_range,
                 chart_type=chart_type,
-                max_dots=max_dots,
+                max_dots=dots_count,
                 max_y_labels=max_y_labels,
                 style=style,
                 x_label=x_label
@@ -76,46 +76,6 @@ class RenderService():
 
         # Report
         notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
-
-
-    def clean(self, data: list) -> list:
-        """ Function: Clean Data """
-        # Step 1 - Sort
-        data.sort(key=lambda i: i[0])
-
-        # Step 2 - Date Formatting
-        data = [[i[0].split()[0]] + i[1:] for i in data]
-
-        # Step 3 - Remove Date Duplications
-        data = [data[i] for i in range(len(data) - 1) if data[i][0] != data[i + 1][0]] + [data[-1]]
-
-        # Step 4 - Return
-        return data
-
-
-    def manipulate(self, data: list, days: int=0, is_dynamic: bool=False, is_today: bool=False) -> list:
-        """ Function: Manipulate Data """
-        # Step 1 - Sort
-        data.sort(key=lambda i: i[0])
-
-        # Step 2 - Add Missing Dates
-        if is_dynamic:
-            data = self.dynamic_fill(data)
-        else:
-            data = self.static_fill(data)
-
-        # Step 3 - Sort Again
-        data.sort(key=lambda i: i[0])
-
-        # Step 4 - Add Until Today
-        if is_today:
-            data = self.today_fill(data)
-
-        # Step 5 - Time Filtering
-        data = data[-1 * days:]
-
-        # Step 6 - Return
-        return data
 
 
     def validate_arguments(self, data: list, average_range: int=None, days: int=0) -> bool:
@@ -135,67 +95,100 @@ class RenderService():
         return True
 
 
-    def add_day_to_date(self, date_string: str, days: int) -> str:
-        """ Function: Add days to date """
-        date = datetime.strptime(date_string, '%Y-%m-%d')
-        added_days = timedelta(days=days)
+    def clean(self, data: list) -> list:
+        """ Function: Clean Data """
+        # Step 1 - Sort
+        data.sort(key=lambda i: i[0])
 
-        return str(date + added_days).split()[0]
+        # Step 2 - Date Formatting
+        data = [[i[0].split()[0]] + i[1:] for i in data]
 
+        # Step 3 - Remove Date Duplications
+        data = [data[i] for i in range(len(data) - 1) if data[i][0] != data[i + 1][0]] + [data[-1]]
 
-    def static_fill(self, data: list) -> list:
-        """ Function: Fill missing data statically """
-        missing_dates = list()
-        start_date = data[0][0]
-        end_date = data[-1][0]
-
-        # Step 1: Fill missing gaps
-        while start_date != end_date:
-            if start_date not in [i[0] for i in data]:
-                select = [i for i in data if i[0] == self.add_day_to_date(start_date, -1)][0]
-                missing_dates.append([start_date] + select[1:])
-            start_date = self.add_day_to_date(start_date, 1)
-            data += missing_dates
-            missing_dates = []
-
-        # Step 2: Return
+        # Step 4 - Return
         return data
 
 
-    def dynamic_fill(self, data: list) -> list:
-        """ Function: Fill missing data dynamically """
-        missing_dates = [list()]
-        start_date = data[0][0]
-        end_date = data[-1][0]
+    def manipulate(self, data: list, days: int=0, is_dynamic: bool=False, is_today: bool=False) -> list:
+        """ Function: Manipulate data """
+        # Step 1 - Sort
+        data.sort(key=lambda i: i[0])
 
-        # Step 1: Determines missing dates
-        while start_date != end_date:
-            if start_date not in [i[0] for i in data]:
-                missing_dates[-1].append(start_date)
-            elif len(missing_dates[-1]) > 0:
-                missing_dates.append(list())
-            start_date = self.add_day_to_date(start_date, 1)
+        # Step 2 - Fill Missing Data
+        data = self.fill_missing_data(data, is_dynamic=is_dynamic)
 
-        if len(missing_dates[-1]) == 0:
-            missing_dates = missing_dates[:-1]
+        # Step 3 - Sort Again
+        data.sort(key=lambda i: i[0])
 
-        # Step 2: Pinpoint
-        for i in range(len(missing_dates)):
-            data_start = [j for j in data if j[0] == self.add_day_to_date(missing_dates[i][0], -1)][0]
-            data_end   = [j for j in data if j[0] == self.add_day_to_date(missing_dates[i][-1], 1)][0]
+        # Step 4 - Add Until Today
+        if is_today:
+            data = self.today_fill(data)
 
-            for j in range(len(missing_dates[i])):
-                missing_dates[i][j] = [missing_dates[i][j]]
-                for k in range(1, len(data_start)):
-                    missing_dates[i][j].append(data_start[k] + int((j + 1)/(len(missing_dates[i]) + 1) * (data_end[k] - data_start[k])))
+        # Step 5 - Time Filtering
+        data = data[-1 * days:]
 
-        # Step 3: Append
-        for i in missing_dates:
-            for j in i:
-                data.append(j)
-
-        # Step 4: Return
+        # Step 6 - Return
         return data
+
+
+    def fill_missing_data(self, data: list, is_dynamic: bool=False) -> list:
+        """ Function: Fill missing data """
+        # Step 1: Add empty rows for missing dates
+        data_new = copy_list(data)
+        start_date = data_new[0][0]
+        end_date = data_new[-1][0]
+
+        while start_date != end_date:
+            if not contains_row_for_date(data_new, start_date):
+                data_new.append([start_date] + [None for _ in range(len(data_new[0]) - 1)])
+            start_date = add_day_to_date(start_date, days=1)
+
+        data_new.sort(key=lambda i: i[0])
+
+        # Step 2: Fill for each column
+        for col in range(1, len(data[0])):
+            column_transpose = [i[col] for i in data_new]
+            column_transpose = self.fill_missing_data_in_column(column_transpose, is_dynamic=is_dynamic)
+
+            for i in range(len(column_transpose)):
+                data_new[i][col] = column_transpose[i]
+
+        # Step 3: Return
+        return data_new
+
+
+    def fill_missing_data_in_column(self, data: list, is_dynamic: bool=False) -> list:
+        # Step 1: Determine missing indexes, store in groups
+        missing_index_list = [list()]
+
+        for i in range(len(data)):
+            if is_empty(data[i]):
+                missing_index_list[-1].append(i)
+            elif len(missing_index_list[-1]) > 0:
+                missing_index_list.append(list())
+
+        if len(missing_index_list[-1]) == 0:
+            missing_index_list = missing_index_list[:-1]
+
+        # Step 2: Fill
+        filled_data = copy_list(data)
+
+        for group in missing_index_list:
+            start = group[0] - 1
+            end = group[-1] + 1
+
+            difference = (filled_data[end] - filled_data[start])
+            increment = difference / (len(group) + 1)
+
+            for index in range(len(group)):
+                if is_dynamic:
+                    filled_data[group[index]] = int(filled_data[start] + index * increment)
+                else:
+                    filled_data[group[index]] = filled_data[group[0] - 1]
+
+        # Step 3: Return
+        return filled_data
 
 
     def today_fill(self, data: list) -> list:
@@ -206,7 +199,7 @@ class RenderService():
         while data[-1][0].split()[0] != today:
             data_copy = [i for i in data[-1]]
             data.append(data_copy)
-            data[-1][0] = self.add_day_to_date(data[-1][0], 1)
+            data[-1][0] = add_day_to_date(data[-1][0], days=1)
 
         return data
 
@@ -268,21 +261,9 @@ class RenderService():
             chart = pygal.StackedLine()
 
         # Chart Data
-        dots_every = 1
-        while len(data)/dots_every > max_dots:
-            dots_every += 1
-
-        get_dot_data = lambda _value, _i, _len: {
-            'value': _value,
-            'node': {
-                'r': (_i % dots_every == 0 or _i == _len - 1) * 2
-            }
-        }
-        get_dot_data_list = lambda _data: [
-            get_dot_data(_data[i], i, len(_data)) for i in range(len(_data))
-        ]
-
+        get_dot_data_list = lambda _data: [self.get_dot_data(_data, i, dots_count=max_dots) for i in range(len(_data))]
         columns = self.storage.get_columns()
+
         if 'total' in chart_type:
             for i in range(len(columns)):
                 chart.add(columns[i], get_dot_data_list(transpose(data)[1:][i]))
@@ -428,3 +409,21 @@ class RenderService():
             data_range = [i/100 for i in data_range]
 
         return data_range
+
+
+    def get_dot_visibility(self, index: int, data_length: int, dots_count: int=101) -> bool:
+        return floor(index % ((data_length - 1) / (dots_count - 1))) == 0 or index == data_length - 1
+
+
+    def calculate_dot_size(self, dots_count: int=101, base_dots_size: float=2.5, shrink_start: int=60, factor: float=5.0) -> float:
+        # The more `factor` is closer to 1, the slower the dots shart shinking. If at 1, dots will never shrink.
+        return base_dots_size * ((shrink_start + max(0, dots_count - shrink_start) / factor) / max(shrink_start, dots_count))
+
+
+    def get_dot_data(self, data: list, index: int, dots_count: int=101) -> dict:
+        return {
+            'value': data[index],
+            'node': {
+                'r': self.get_dot_visibility(index, len(data), dots_count) * self.calculate_dot_size(dots_count)
+            }
+        }

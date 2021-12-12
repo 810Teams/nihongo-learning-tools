@@ -9,6 +9,7 @@ from src.model.command import Command
 from src.model.storage import Storage
 from src.service.render_service import RenderService
 from src.util.logging import error, notice
+from src.util.reader import convert_csv_to_list
 from settings import DEFAULT_STYLE
 
 import os
@@ -29,20 +30,16 @@ class OperationService:
 
     def operate_append(self, command: Command) -> None:
         """ Function: Operation Code 'A' (Add Data) """
-        temp = command.value
+        value = command.value
 
         if command.contains_argument('-add'):
             try:
-                temp = [i.replace(' ', '') for i in temp.split(',')]
-
-                for i in range(len(temp)):
-                    if (temp[i] == ''):
-                        temp[i] = 0
-                    else:
-                        temp[i] = int(temp[i])
-
+                value = convert_csv_to_list(value, value_type=int, replace_null=0)
                 initial = self.storage.to_list()[-1][1:]
-                self.storage.append([int(initial[i]) + temp[i] for i in range(len(initial))])
+
+                new_row = [int(initial[i]) + value[i] for i in range(len(initial))]
+                self.storage.append(new_row)
+                notice('Data {} is added to the storage.'.format(new_row), start='\n')
             except ValueError:
                 error('Invalid value format. Please try again.', start='\n')
 
@@ -56,25 +53,19 @@ class OperationService:
                 error('Custom ID must be an integer.', start='\n')
                 return
 
-            notice('Please input custom formatted data.', start='\n')
-
             try:
-                self.storage.append(custom_append_head(temp, custom_id))
+                new_row = custom_append_head(value, custom_id)
+                self.storage.append(new_row)
+                notice('Data {} is added to the storage.'.format(new_row), start='\n')
             except IndexError:
                 error('Invalid value format. Please try again.', start='\n')
                 error('Function \'custom_append_{}\' might not have been implemented.'.format(custom_id))
 
         else:
             try:
-                temp = [i.replace(' ', '') for i in temp.split(',')]
-
-                for i in range(len(temp)):
-                    if (temp[i] == ''):
-                        temp[i] = 0
-                    else:
-                        temp[i] = int(temp[i])
-
-                self.storage.append(temp)
+                new_row = convert_csv_to_list(value, value_type=int, replace_null=0)
+                self.storage.append(new_row)
+                notice('Data {} is added to the storage.'.format(new_row), start='\n')
             except ValueError:
                 error('Invalid value format. Please try again.', start='\n')
 
@@ -84,7 +75,11 @@ class OperationService:
         # Step 0: -open-only argument
         if command.contains_argument('-open-only'):
             try:
-                os.open('charts/*')
+                file_name_list = os.listdir('charts')
+
+                for file_name in file_name_list:
+                    os.open('/charts/{}'.format(file_name))
+
                 notice('Opening chart files.', start='\n')
             except (FileNotFoundError, OSError, PermissionError):
                 error('Chart files opening error', start='\n')
@@ -114,10 +109,10 @@ class OperationService:
                 return
 
         # Step 3: -max-dots argument
-        max_dots = 100
-        if command.contains_argument('-max-dots'):
+        dots_count = 100
+        if command.contains_argument('-dots-count'):
             try:
-                max_dots = int(command.get_argument('-max-dots').value)
+                dots_count = int(command.get_argument('-dots-count').value)
             except (IndexError, ValueError):
                 error('Maximum dots must be an integer.', start='\n')
                 error('Aborting chart creation process.')
@@ -192,7 +187,7 @@ class OperationService:
             days=days,
             is_dynamic=command.contains_argument('-dynamic'),
             is_today=command.contains_argument('-today'),
-            max_dots=max_dots,
+            dots_count=dots_count,
             max_y_labels=max_y_labels,
             style=style,
             x_label=x_label
