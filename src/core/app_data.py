@@ -30,8 +30,8 @@ SUPPORTED_STYLES = (
 
 OPERATION_LIST = [
     Operation('append', code='a', value_type=str, description='Append Data', parameter_list=[
-        Parameter('-add', description='Add mode'),
-        Parameter('-custom', value_type=int, description='Custom written method')
+        Parameter('-custom', value_type=int, description='Custom written method'),
+        Parameter('--add', description='Add mode')
     ]),
     Operation('chart', code='c', description='Create Charts', parameter_list=[
         Parameter('-average-range', value_type=int, description='Average (Default: All)'),
@@ -40,16 +40,14 @@ OPERATION_LIST = [
         Parameter('-max-y', value_type=int, description='Maximum y-labels (Default: 15)'),
         Parameter('-style', value_type=str, description='Style'),
         Parameter('-x-label', value_type=str, description='X-label type (Default: date) (Available: [date,count,both])'),
-        Parameter('-allow-float', description='Allow floating points'),
-        Parameter('-dynamic', description='Dynamic Fill'),
-        Parameter('-open', description='Open'),
-        Parameter('-open-only', description='Open Only'),
-        Parameter('-today', description='Today')
+        Parameter('--allow-float', description='Allow floating points'),
+        Parameter('--dynamic', description='Dynamic Fill'),
+        Parameter('--open', description='Open'),
+        Parameter('--open-only', description='Open Only'),
+        Parameter('--today', description='Today')
     ]),
     Operation('reload', code='r', description='Reload Storage', parameter_list=[]),
     Operation('save', code='s', description='Save Storage', parameter_list=[]),
-    Operation('view', code='v', description='View Storage', parameter_list=[
-        Parameter('-open', 'Open')
-    ]),
+    Operation('view', code='v', description='View Storage', parameter_list=[]),
     Operation('exit', code='x', description='Exit Application', parameter_list=[]),
 ]

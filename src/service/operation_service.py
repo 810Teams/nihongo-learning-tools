@@ -12,8 +12,6 @@ from src.util.logging import error, notice
 from src.util.reader import convert_csv_to_list
 from settings import DEFAULT_STYLE
 
-import os
-
 
 class OperationService:
     def __init__(self, storage: Storage) -> None:
@@ -32,7 +30,7 @@ class OperationService:
         """ Function: Operation Code 'A' (Add Data) """
         value = command.value
 
-        if command.contains_argument('-add'):
+        if command.contains_argument('--add'):
             try:
                 value = convert_csv_to_list(value, value_type=int, replace_null=0)
                 initial = self.storage.to_list()[-1][1:]
@@ -72,20 +70,6 @@ class OperationService:
 
     def operate_chart(self, command: Command) -> None:
         """ Function: Operation Code 'C' (Create Charts) """
-        # Step 0: -open-only argument
-        if command.contains_argument('-open-only'):
-            try:
-                file_name_list = os.listdir('charts')
-
-                for file_name in file_name_list:
-                    os.open('/charts/{}'.format(file_name))
-
-                notice('Opening chart files.', start='\n')
-            except (FileNotFoundError, OSError, PermissionError):
-                error('Chart files opening error', start='\n')
-            finally:
-                return
-
         # Step 1: -average argument
         average_range = None
         if command.contains_argument('-average-range'):
@@ -182,33 +166,16 @@ class OperationService:
 
         # Step 7: Render charts
         self.render_service.render_all(
-            allow_float=command.contains_argument('-allow-float'),
+            allow_float=command.contains_argument('--allow-float'),
             average_range=average_range,
             days=days,
-            is_dynamic=command.contains_argument('-dynamic'),
-            is_today=command.contains_argument('-today'),
+            is_dynamic=command.contains_argument('--dynamic'),
+            is_today=command.contains_argument('--today'),
             dots_count=dots_count,
             max_y_labels=max_y_labels,
             style=style,
             x_label=x_label
         )
-
-        # Step 8: -open argument
-        if command.contains_argument('-open'):
-            try:
-                os.open('charts/*')
-                notice('Opening chart files.', start='\n')
-            except (FileNotFoundError, OSError, PermissionError):
-                error('Something unexpected happened, please try again.', start='\n')
-
-
-    def operate_help(self, command: Command) -> None:
-        """ Function: Operation Code 'H' (Help) """
-        try:
-            os.open('HELP.md')
-            notice('Opening \'HELP.md\'')
-        except (FileNotFoundError, OSError, PermissionError):
-            error('Something unexpected happened, please try again.')
 
 
     def operate_reload(self, command: Command) -> None:
@@ -226,13 +193,6 @@ class OperationService:
         """ Function: Operation Code 'V' (View Storage) """
         print()
         print(self.storage.data)
-
-        if command.contains_argument('-open'):
-            try:
-                os.open('data/' + self.storage.name + '.csv')
-                notice('Opening file \'{}.csv\''.format(self.storage.name), start='\n')
-            except (FileNotFoundError, OSError, PermissionError):
-                error('Opening storage file \'{}\' error.'.format(self.storage.name), start='\n')
 
 
     def operate_exit(self, command: Command) -> None:

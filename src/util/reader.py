@@ -15,10 +15,15 @@ def extract_command_and_arguments(line: str) -> Command:
     i = 1
     arg_found = False
     while i < len(line_parts):
-        # Argument spotted
+        # Value-parsing argument spotted
         if line_parts[i][0] == '-' and line_parts[i][1].isalpha():
             command.argument_list.append(Argument(line_parts[i]))
             arg_found = True
+
+        # Modification argument spotted
+        elif line_parts[i][0:2] == '--' and line_parts[i][2].isalpha():
+            command.argument_list.append(Argument(line_parts[i]))
+            arg_found = False
 
         # Previous item was argument, indicates that this is the value of the most recent argument
         elif arg_found:
@@ -26,12 +31,48 @@ def extract_command_and_arguments(line: str) -> Command:
             arg_found = False
 
         # Value of the command itself
-        else:
+        elif command.value is not None:
             command.value = line_parts[i]
+            arg_found = False
 
         i += 1
 
     return command
+
+
+def get_line_warning_segments(line: str) -> list:
+    line_parts = line.split(' ')
+
+    warning_segments = list()
+
+    i = 1
+    arg_found = False
+    command_value_exist = False
+    while i < len(line_parts):
+        # Value-parsing argument spotted
+        if line_parts[i][0] == '-' and line_parts[i][1].isalpha():
+            arg_found = True
+
+        # Modification argument spotted
+        elif line_parts[i][0:2] == '--' and line_parts[i][2].isalpha():
+            arg_found = False
+
+        # Previous item was argument, indicates that this is the value of the most recent argument
+        elif arg_found:
+            arg_found = False
+
+        # Value of the command itself
+        elif not command_value_exist:
+            command_value_exist = True
+            arg_found = False
+
+        # Incorrect segment found, add segment to warning list
+        else:
+            warning_segments.append(line_parts[i])
+
+        i += 1
+
+    return warning_segments
 
 
 def convert_csv_to_list(value: str, value_type: type=str, replace_null=str()) -> list:
