@@ -3,6 +3,7 @@
 """
 
 
+import pandas
 from src.model.argument import Argument
 from src.model.command import Command
 
@@ -31,7 +32,7 @@ def extract_command_and_arguments(line: str) -> Command:
             arg_found = False
 
         # Value of the command itself
-        elif command.value is not None:
+        elif command.value is None:
             command.value = line_parts[i]
             arg_found = False
 
@@ -114,7 +115,10 @@ def contains_nan(row: list) -> bool:
 
 
 def is_empty(value) -> bool:
-    return value == str() or value is None or is_nan(value)
+    try:
+        return value == str() or value is None or is_nan(value)
+    except TypeError:
+        return True
 
 
 def copy_list(value: list) -> list:
