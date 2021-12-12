@@ -29,11 +29,11 @@ SUPPORTED_STYLES = (
 )
 
 OPERATION_LIST = [
-    Operation('append', code='a', value_type=str, description='Append Data', parameter_list=[
+    Operation('append', value_type=str, description='Append Data', parameter_list=[
         Parameter('-custom', value_type=int, description='Custom written method'),
         Parameter('--add', description='Add mode')
     ]),
-    Operation('chart', code='c', description='Create Charts', parameter_list=[
+    Operation('chart', description='Create Charts', parameter_list=[
         Parameter('-average-range', value_type=int, description='Average (Default: All)'),
         Parameter('-days', value_type=int, description='Duration (Default: All)'),
         Parameter('-dots-count', value_type=int, description='Maximum dot count (Default: 101)'),
@@ -46,8 +46,8 @@ OPERATION_LIST = [
         Parameter('--open-only', description='Open Only'),
         Parameter('--today', description='Today')
     ]),
-    Operation('reload', code='r', description='Reload Storage', parameter_list=[]),
-    Operation('save', code='s', description='Save Storage', parameter_list=[]),
-    Operation('view', code='v', description='View Storage', parameter_list=[]),
-    Operation('exit', code='x', description='Exit Application', parameter_list=[]),
+    Operation('reload', description='Reload Storage', parameter_list=[]),
+    Operation('save', description='Save Storage', parameter_list=[]),
+    Operation('view', description='View Storage', parameter_list=[]),
+    Operation('exit', description='Exit Application', parameter_list=[]),
 ]
