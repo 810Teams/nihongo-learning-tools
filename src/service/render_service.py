@@ -1,5 +1,5 @@
 """
-    `src/service/render.py`
+    `src/service/render_service.py`
 """
 
 from pandas.core.indexes import base
@@ -7,7 +7,6 @@ from pygal.style import DefaultStyle, Style
 
 from datetime import datetime
 from math import ceil, floor
-from time import perf_counter
 
 from src.model.storage import Storage
 from src.util.logging import error
@@ -23,7 +22,6 @@ import pygal
 class RenderService():
     def __init__(self, storage: Storage) -> None:
         self.storage = storage
-
         self.CHART_TYPE_LIST = [
             'total default', 'total stacked',
             'rate default', 'rate stacked',
@@ -44,7 +42,6 @@ class RenderService():
     ) -> None:
         """ Function: Analysis """
         # Data Preparation
-        time_start = perf_counter()
         data = self.clean(numpy.array(self.storage.data).tolist())
         data = self.manipulate(data, days=days, is_dynamic=is_dynamic, is_today=is_today)
 
@@ -68,14 +65,11 @@ class RenderService():
                 allow_float=allow_float,
                 average_range=average_range,
                 chart_type=chart_type,
-                max_dots=dots_count,
+                dots_count=dots_count,
                 max_y_labels=max_y_labels,
                 style=style,
                 x_label=x_label
             )
-
-        # Report
-        notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
 
     def validate_arguments(self, data: list, average_range: int=None, days: int=0) -> bool:
@@ -243,7 +237,7 @@ class RenderService():
         allow_float: bool=False,
         average_range: int=None,
         chart_type: str='total default',
-        max_dots: int=100,
+        dots_count: int=100,
         max_y_labels: int=15,
         style: Style=DefaultStyle,
         x_label: str='date'
@@ -261,7 +255,7 @@ class RenderService():
             chart = pygal.StackedLine()
 
         # Chart Data
-        get_dot_data_list = lambda _data: [self.get_dot_data(_data, i, dots_count=max_dots) for i in range(len(_data))]
+        get_dot_data_list = lambda _data: [self.get_dot_data(_data, i, dots_count=dots_count) for i in range(len(_data))]
         columns = self.storage.get_columns()
 
         if 'total' in chart_type:
@@ -415,8 +409,11 @@ class RenderService():
         return floor(index % ((data_length - 1) / (dots_count - 1))) == 0 or index == data_length - 1
 
 
-    def calculate_dot_size(self, dots_count: int=101, base_dots_size: float=2.5, shrink_start: int=60, factor: float=5.0) -> float:
-        # The more `factor` is closer to 1, the slower the dots shart shinking. If at 1, dots will never shrink.
+    def calculate_dot_size(self, dots_count: int=101, base_dots_size: float=2.5, shrink_start: int=45, factor: float=2.5) -> float:
+        # `dots_count`: The dots count displayed on the charts
+        # `base_dots_size`: The base dots size
+        # `shrink_start`: The maximum dots count that will retain the base dot size
+        # `factor`: The closer to 1, the slower the dots start shinking. If at 1, dots will never shrink.
         return base_dots_size * ((shrink_start + max(0, dots_count - shrink_start) / factor) / max(shrink_start, dots_count))
 
 

@@ -1,8 +1,9 @@
 """
-    `operations.py`
+    `src/service/operation_service.py`
 """
 
 from custom.append import custom_append_head
+from src.service.backup_service import BackupService
 from src.model.operation import Operation
 from src.core.app_data import OPERATION_LIST, SUPPORTED_STYLES
 from src.model.command import Command
@@ -12,18 +13,22 @@ from src.util.logging import error, notice
 from src.util.reader import convert_csv_to_list
 from settings import DEFAULT_STYLE
 
+from time import perf_counter
+
 
 class OperationService:
     def __init__(self, storage: Storage) -> None:
         self.storage = storage
         self.render_service = RenderService(storage)
-
+        self.backup_service = BackupService(storage.name)
 
     def execute(self, command: Command) -> None:
         if not self.validate_command(command):
             error('Command \'{}\' error.'.format(command.name), start='\n')
         else:
             exec('self.operate_{}(command)'.format(command.name))
+            self.backup_service.trigger_backup()
+
 
 
     def operate_append(self, command: Command) -> None:
@@ -165,6 +170,8 @@ class OperationService:
                 return
 
         # Step 7: Render charts
+        time_start = perf_counter()
+
         self.render_service.render_all(
             allow_float=command.contains_argument('--allow-float'),
             average_range=average_range,
@@ -177,6 +184,8 @@ class OperationService:
             x_label=x_label
         )
 
+        notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
+
 
     def operate_reload(self, command: Command) -> None:
         """ Function: Operation Code 'R' (Reload Storage) """
@@ -187,6 +196,7 @@ class OperationService:
     def operate_save(self, command: Command) -> None:
         """ Function: Operation Code 'S' (Save Storage) """
         self.storage.save()
+        notice('Storage \'{}\' is saved to disk.'.format(self.storage.name), start='\n')
 
 
     def operate_view(self, command: Command) -> None:

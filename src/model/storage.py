@@ -16,7 +16,6 @@ class Storage:
     def __init__(self, name):
         self.name = name
         self.data = None
-        pandas.set_option("display.max_rows", None, "display.max_columns", None)
 
 
     def append(self, new_data) -> None:
