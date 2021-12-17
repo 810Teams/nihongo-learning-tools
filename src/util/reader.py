@@ -4,6 +4,7 @@
 
 
 import pandas
+from pygal.style import DefaultStyle, Style
 from src.model.argument import Argument
 from src.model.command import Command
 
@@ -123,3 +124,19 @@ def is_empty(value) -> bool:
 
 def copy_list(value: list) -> list:
     return [i for i in value]
+
+
+def is_valid_style(style_name: str) -> bool:
+    try:
+        exec('from pygal.style import {}'.format(style_name))
+        return True
+    except (NameError, SyntaxError, ImportError):
+        return False
+
+
+def read_style(style_name: str) -> Style:
+    try:
+        exec('from pygal.style import {}'.format(style_name))
+        return eval(style_name)
+    except (NameError, SyntaxError, ImportError):
+        return DefaultStyle

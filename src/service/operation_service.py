@@ -5,13 +5,13 @@
 from custom.append import custom_append_head
 from src.service.backup_service import BackupService
 from src.model.operation import Operation
-from src.core.app_data import OPERATION_LIST, SUPPORTED_STYLES
+from src.core.app_data import OPERATION_LIST
 from src.model.command import Command
 from src.model.storage import Storage
 from src.service.render_service import RenderService
 from src.util.logging import error, notice
-from src.util.reader import convert_csv_to_list
-from settings import DEFAULT_STYLE
+from src.util.reader import convert_csv_to_list, is_valid_style
+from settings import DEFAULT_AVERAGE_RANGE, DEFAULT_DAYS, DEFAULT_DOTS_COUNT, DEFAULT_MAX_Y_LABELS, DEFAULT_STYLE, DEFAULT_X_LABEL
 
 from time import perf_counter
 
@@ -28,7 +28,6 @@ class OperationService:
         else:
             exec('self.operate_{}(command)'.format(command.name))
             self.backup_service.trigger_backup()
-
 
 
     def operate_append(self, command: Command) -> None:
@@ -76,7 +75,7 @@ class OperationService:
     def operate_chart(self, command: Command) -> None:
         """ Function: Operation Code 'C' (Create Charts) """
         # Step 1: -average argument
-        average_range = None
+        average_range = DEFAULT_AVERAGE_RANGE
         if command.contains_argument('-average-range'):
             # Test for valid format
             try:
@@ -87,7 +86,7 @@ class OperationService:
                 return
 
         # Step 2: -days argument
-        days = 0
+        days = DEFAULT_DAYS
         if command.contains_argument('-days'):
             # Test for valid format
             try:
@@ -98,7 +97,7 @@ class OperationService:
                 return
 
         # Step 3: -max-dots argument
-        dots_count = 100
+        dots_count = DEFAULT_DOTS_COUNT
         if command.contains_argument('-dots-count'):
             try:
                 dots_count = int(command.get_argument('-dots-count').value)
@@ -108,7 +107,7 @@ class OperationService:
                 return
 
         # Step 4: -max-y argument
-        max_y_labels = 15
+        max_y_labels = DEFAULT_MAX_Y_LABELS
         if command.contains_argument('-max-y'):
             # Step 4.1 - Test for valid format
             try:
@@ -125,35 +124,24 @@ class OperationService:
                 return
 
         # Step 5: -style argument
-        style = 'DefaultStyle'
+        style = DEFAULT_STYLE
         if command.contains_argument('-style'):
-            # Step 5.1.1 - Test for valid format
+            # Step 5.1 - Test for valid format
             try:
                 style = command.get_argument('-style').value
-            except (IndexError, ValueError):
+            except ValueError:
                 error('Invalid style.', start='\n')
                 error('Aborting chart creation process.')
                 return
 
-            # Step 5.1.2 - Test for valid requirements
-            if style not in SUPPORTED_STYLES:
+            # Step 5.2 - Test for valid style
+            if is_valid_style(style):
                 error('Invalid style.', start='\n')
                 error('Aborting chart creation process.')
                 return
-        elif DEFAULT_STYLE:
-            style = DEFAULT_STYLE
-
-            # Step 4.2.1 - Test for valid requirements
-            if DEFAULT_STYLE not in SUPPORTED_STYLES:
-                error('Invalid style found in \'settings.py\'.', start='\n')
-                error('Aborting chart creation process.')
-                return
-
-            notice('Default style is found in \'settings.py\', now proceeding to chart creation.', start='\n')
-            notice('Style \'{}\' will be used in chart creation.'.format(DEFAULT_STYLE))
 
         # Step 6: -x-label argument
-        x_label = 'date'
+        x_label = DEFAULT_X_LABEL
         if command.contains_argument('-x-label'):
             # Step 6.1 - Test for valid format
             try:

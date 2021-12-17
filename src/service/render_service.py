@@ -2,9 +2,6 @@
     `src/service/render_service.py`
 """
 
-from pandas.core.indexes import base
-from pygal.style import DefaultStyle, Style
-
 from datetime import datetime
 from math import ceil, floor
 
@@ -13,7 +10,8 @@ from src.util.logging import error
 from src.util.logging import notice
 from src.util.calculation import average, add_day_to_date
 from src.util.transform import transpose
-from src.util.reader import contains_row_for_date, copy_list, find_row_by_date, is_empty, is_nan
+from src.util.reader import contains_row_for_date, copy_list, is_empty, read_style
+from settings import BASE_DOTS_SIZE, DEFAULT_AVERAGE_RANGE, DEFAULT_DAYS, DEFAULT_DOTS_COUNT, DEFAULT_MAX_Y_LABELS, DEFAULT_STYLE, DEFAULT_X_LABEL, MAX_DOTS_SIZE_RETAIN, SHRINK_FACTOR
 
 import numpy
 import pygal
@@ -30,15 +28,15 @@ class RenderService():
 
     def render_all(
         self,
+        average_range: int=DEFAULT_AVERAGE_RANGE,
+        days: int=DEFAULT_DAYS,
+        dots_count: int=DEFAULT_DOTS_COUNT,
+        max_y_labels: int=DEFAULT_MAX_Y_LABELS,
+        style: str=DEFAULT_STYLE,
+        x_label: str=DEFAULT_X_LABEL,
         allow_float: bool=False,
-        average_range: int=None,
-        days: int=0,
-        dots_count: int=100,
         is_dynamic: bool=False,
         is_today: bool=False,
-        max_y_labels: int=15,
-        style: str='DefaultStyle',
-        x_label: str='date'
     ) -> None:
         """ Function: Analysis """
         # Data Preparation
@@ -48,14 +46,6 @@ class RenderService():
         # Arguments Validation
         if not self.validate_arguments(data, average_range=average_range, days=days):
             return
-
-        # Style Loading
-        try:
-            exec('from pygal.style import {}'.format(style))
-            style = eval(style)
-        except (NameError, SyntaxError, ImportError):
-            error('Invalid style name. \'DefaultStyle\' will be used instead.', start='\n')
-            style = DefaultStyle
 
         # Rendering
         self.render_chart_total(data, allow_float=allow_float, max_y_labels=max_y_labels, style=style)
@@ -72,7 +62,7 @@ class RenderService():
             )
 
 
-    def validate_arguments(self, data: list, average_range: int=None, days: int=0) -> bool:
+    def validate_arguments(self, data: list, average_range: int=DEFAULT_AVERAGE_RANGE, days: int=DEFAULT_DAYS) -> bool:
         """ Function: Validates arguments which depends on the length of cleaned data """
         # Step 1: -average argument
         if average_range != None and not (1 <= average_range <= len(data) - 1):
@@ -104,7 +94,7 @@ class RenderService():
         return data
 
 
-    def manipulate(self, data: list, days: int=0, is_dynamic: bool=False, is_today: bool=False) -> list:
+    def manipulate(self, data: list, days: int=DEFAULT_DAYS, is_dynamic: bool=False, is_today: bool=False) -> list:
         """ Function: Manipulate data """
         # Step 1 - Sort
         data.sort(key=lambda i: i[0])
@@ -198,7 +188,7 @@ class RenderService():
         return data
 
 
-    def render_chart_total(self, data: list, allow_float: bool=False, max_y_labels: int=15, style: Style=DefaultStyle) -> None:
+    def render_chart_total(self, data: list, max_y_labels: int=DEFAULT_MAX_Y_LABELS, style: str=DEFAULT_STYLE, allow_float: bool=False) -> None:
         """ Function: Kanji Total Analysis """
         chart = pygal.Bar()
 
@@ -224,23 +214,23 @@ class RenderService():
         chart.legend_box_size = 16
 
         # Chart Render
-        chart.style = style
+        chart.style = read_style(style)
         chart.render_to_file('charts/{}_total.svg'.format(self.storage.name.lower()))
 
         # Notice
-        notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()))
+        notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()), start='\n')
 
 
     def render_chart_development(
         self,
         data: list,
-        allow_float: bool=False,
-        average_range: int=None,
         chart_type: str='total default',
-        dots_count: int=100,
-        max_y_labels: int=15,
-        style: Style=DefaultStyle,
-        x_label: str='date'
+        average_range: int=DEFAULT_AVERAGE_RANGE,
+        dots_count: int=DEFAULT_DOTS_COUNT,
+        max_y_labels: int=DEFAULT_MAX_Y_LABELS,
+        style: str=DEFAULT_STYLE,
+        x_label: str=DEFAULT_X_LABEL,
+        allow_float: bool=False,
     ) -> None:
         """ Function: Kanji Development Analysis """
         # Chart Type Check
@@ -255,19 +245,24 @@ class RenderService():
             chart = pygal.StackedLine()
 
         # Chart Data
-        get_dot_data_list = lambda _data: [self.get_dot_data(_data, i, dots_count=dots_count) for i in range(len(_data))]
         columns = self.storage.get_columns()
 
         if 'total' in chart_type:
             for i in range(len(columns)):
-                chart.add(columns[i], get_dot_data_list(transpose(data)[1:][i]))
+                chart.add(
+                    columns[i],
+                    self.get_dot_data_list(transpose(data)[1:][i]), dots_count=dots_count
+                )
 
         elif 'rate' in chart_type:
             data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(columns) + 1)]
 
             if 'average' not in chart_type:
                 for i in range(len(columns)):
-                    chart.add(columns[i], get_dot_data_list(data_rate[i]))
+                    chart.add(
+                        columns[i],
+                        self.get_dot_data_list(data_rate[i], dots_count=dots_count, force_visible=True)
+                    )
             else:
                 data_average = list()
                 for i in range(len(columns)):
@@ -282,7 +277,10 @@ class RenderService():
                             elif average_range <= j:
                                 temp.append(round(average(data_rate[i][j - average_range + 1:j + 1]), 2))
 
-                    chart.add(columns[i], get_dot_data_list(temp))
+                    chart.add(
+                        columns[i],
+                        self.get_dot_data_list(temp, dots_count=dots_count, force_visible=False)
+                    )
                     data_average.append(temp)
 
         # Chart Titles
@@ -352,7 +350,7 @@ class RenderService():
         chart.legend_box_size = 16
 
         # Chart Style
-        chart.style = style
+        chart.style = read_style(style)
         if 'default' in chart_type:
             chart.fill = False
             chart.stroke_style = {
@@ -379,7 +377,7 @@ class RenderService():
         notice('Chart \'{}\' successfully exported.'.format(file_name))
 
 
-    def calculate_y_labels(self, data_min, data_max, allow_float: bool=False, max_y_labels: int=15) -> list:
+    def calculate_y_labels(self, data_min, data_max, max_y_labels: int=DEFAULT_MAX_Y_LABELS, allow_float: bool=False) -> list:
         """ Function: Calculate """
         data_min = floor(data_min)
         data_max = ceil(data_max)
@@ -405,22 +403,26 @@ class RenderService():
         return data_range
 
 
-    def get_dot_visibility(self, index: int, data_length: int, dots_count: int=101) -> bool:
-        return floor(index % ((data_length - 1) / (dots_count - 1))) == 0 or index == data_length - 1
+    def get_dot_visibility(self, index: int, data_length: int, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
+        is_right_step = floor(index % ((data_length - 1) / (dots_count - 1))) == 0
+        is_last_index = index == data_length - 1
+
+        return is_right_step or is_last_index
 
 
-    def calculate_dot_size(self, dots_count: int=101, base_dots_size: float=2.5, shrink_start: int=45, factor: float=2.5) -> float:
-        # `dots_count`: The dots count displayed on the charts
-        # `base_dots_size`: The base dots size
-        # `shrink_start`: The maximum dots count that will retain the base dot size
-        # `factor`: The closer to 1, the slower the dots start shinking. If at 1, dots will never shrink.
-        return base_dots_size * ((shrink_start + max(0, dots_count - shrink_start) / factor) / max(shrink_start, dots_count))
+    def calculate_dot_size(self, dots_count: int=DEFAULT_DOTS_COUNT) -> float:
+        weight = MAX_DOTS_SIZE_RETAIN + max(0, dots_count - MAX_DOTS_SIZE_RETAIN) / SHRINK_FACTOR
+        margin = max(MAX_DOTS_SIZE_RETAIN, dots_count)
+
+        return (weight / margin) * BASE_DOTS_SIZE
 
 
-    def get_dot_data(self, data: list, index: int, dots_count: int=101) -> dict:
-        return {
-            'value': data[index],
-            'node': {
-                'r': self.get_dot_visibility(index, len(data), dots_count) * self.calculate_dot_size(dots_count)
-            }
-        }
+    def get_dot_data(self, data: list, index: int, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False) -> dict:
+        dot_visibility = force_visible or self.get_dot_visibility(index, len(data), dots_count)
+        dot_size = self.calculate_dot_size(dots_count)
+
+        return {'value': data[index], 'node': {'r': dot_visibility * dot_size}}
+
+
+    def get_dot_data_list(self, data: list, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False):
+        return [self.get_dot_data(data, i, dots_count=dots_count, force_visible=force_visible) for i in range(len(data))]
