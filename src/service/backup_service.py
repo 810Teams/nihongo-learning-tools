@@ -14,11 +14,13 @@ class BackupService:
 
 
     def trigger_backup(self) -> None:
+        """ Method: Trigger backup process """
         if ENABLE_BACKUP:
             self.copy()
 
 
     def copy(self) -> None:
+        """ Method: Copy data and save elsewhere as backup """
         shutil.copy2(
             'data/{}'.format(
                 self.storage_name + '.csv'

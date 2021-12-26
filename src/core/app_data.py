@@ -25,8 +25,6 @@ OPERATION_LIST = [
         Parameter('-x-label', value_type=str, description='X-label type (Default: {}) (Available: [date, count, both])'.format(DEFAULT_X_LABEL)),
         Parameter('--allow-float', description='Allow floating points'),
         Parameter('--dynamic', description='Dynamic Fill'),
-        Parameter('--open', description='Open'),
-        Parameter('--open-only', description='Open Only'),
         Parameter('--today', description='Today')
     ]),
     Operation('reload', description='Reload Storage', parameter_list=[]),

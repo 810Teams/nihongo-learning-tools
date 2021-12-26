@@ -2,28 +2,36 @@
     `src/util/reader.py`
 """
 
-
-import pandas
 from pygal.style import DefaultStyle, Style
+from src.model.operation import Operation
+from src.core.app_data import OPERATION_LIST
 from src.model.argument import Argument
 from src.model.command import Command
 
 
-def extract_command_and_arguments(line: str) -> Command:
+def extract_command_and_arguments(line: str, get_warning: bool=False) -> Command:
     line_parts = line.split(' ')
 
     command = Command(line_parts[0], argument_list=list())
+    warning_segments = list()
 
     i = 1
     arg_found = False
+
     while i < len(line_parts):
+        # Verify if argument exists in the command
+        if is_value_parsing_argument(line_parts[i]) or is_modification_argument(line_parts[i]):
+            operation = get_operation(command.name)
+            if not operation.contains_parameter(line_parts[i]):
+                warning_segments.append(line_parts[i])
+
         # Value-parsing argument spotted
-        if line_parts[i][0] == '-' and line_parts[i][1].isalpha():
+        if is_value_parsing_argument(line_parts[i]):
             command.argument_list.append(Argument(line_parts[i]))
             arg_found = True
 
         # Modification argument spotted
-        elif line_parts[i][0:2] == '--' and line_parts[i][2].isalpha():
+        elif is_modification_argument(line_parts[i]):
             command.argument_list.append(Argument(line_parts[i]))
             arg_found = False
 
@@ -37,44 +45,37 @@ def extract_command_and_arguments(line: str) -> Command:
             command.value = line_parts[i]
             arg_found = False
 
-        i += 1
-
-    return command
-
-
-def get_line_warning_segments(line: str) -> list:
-    line_parts = line.split(' ')
-
-    warning_segments = list()
-
-    i = 1
-    arg_found = False
-    command_value_exist = False
-    while i < len(line_parts):
-        # Value-parsing argument spotted
-        if line_parts[i][0] == '-' and line_parts[i][1].isalpha():
-            arg_found = True
-
-        # Modification argument spotted
-        elif line_parts[i][0:2] == '--' and line_parts[i][2].isalpha():
-            arg_found = False
-
-        # Previous item was argument, indicates that this is the value of the most recent argument
-        elif arg_found:
-            arg_found = False
-
-        # Value of the command itself
-        elif not command_value_exist:
-            command_value_exist = True
-            arg_found = False
-
-        # Incorrect segment found, add segment to warning list
+        # Incorrect segment found
         else:
             warning_segments.append(line_parts[i])
 
         i += 1
 
-    return warning_segments
+    if get_warning:
+        return warning_segments
+    return command
+
+
+def is_value_parsing_argument(line_part: str) -> bool:
+    return line_part[0] == '-' and line_part[1].isalpha()
+
+
+def is_modification_argument(line_part: str) -> bool:
+    return line_part[0:2] == '--' and line_part[2].isalpha()
+
+
+def operation_exists(name: str) -> bool:
+    for operation in OPERATION_LIST:
+        if operation.name == name:
+            return True
+    return False
+
+
+def get_operation(name: str) -> Operation:
+    for operation in OPERATION_LIST:
+        if operation.name == name:
+            return operation
+    return None
 
 
 def convert_csv_to_list(value: str, value_type: type=str, replace_null=str()) -> list:

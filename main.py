@@ -18,7 +18,7 @@ class ProgressTrackerApplication:
 
 
     def run(self) -> None:
-        """ Main Function """
+        """ Method: Run the application """
         # Title
         print()
         print('- {} -'.format(APP_NAME))
@@ -58,7 +58,7 @@ class ProgressTrackerApplication:
 
 
     def start(self) -> None:
-        """ Function: Start operating application """
+        """ Method: Start operating the application """
         while True:
             print()
             line = input('(Command) ')
@@ -66,7 +66,19 @@ class ProgressTrackerApplication:
             if line.strip() == str():
                 continue
 
+            self.display_command_warnings(line)
             self.operation_service.execute(extract_command_and_arguments(line))
+
+
+    def display_command_warnings(self, line: str) -> None:
+        """ Method: Display command warnings before the command execution """
+        warning_segments = extract_command_and_arguments(line, get_warning=True)
+        if len(warning_segments) > 0:
+            print()
+        for warning in warning_segments:
+            notice('Command segment \'{}\', as well as its value, is not recognized by the program.'.format(warning))
+        if len(warning_segments) > 0:
+            notice('Please keep in mind that unrecognized command segments may not take effect.', end=str())
 
 
 def main() -> None:

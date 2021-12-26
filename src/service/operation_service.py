@@ -13,8 +13,6 @@ from src.util.logging import error, notice
 from src.util.reader import convert_csv_to_list, is_valid_style
 from settings import DEFAULT_AVERAGE_RANGE, DEFAULT_DAYS, DEFAULT_DOTS_COUNT, DEFAULT_MAX_Y_LABELS, DEFAULT_STYLE, DEFAULT_X_LABEL
 
-from time import perf_counter
-
 
 class OperationService:
     def __init__(self, storage: Storage) -> None:
@@ -22,16 +20,21 @@ class OperationService:
         self.render_service = RenderService(storage)
         self.backup_service = BackupService(storage.name)
 
+
     def execute(self, command: Command) -> None:
-        if not self.validate_command(command):
+        if self.find_operation(command) == None:
             error('Command \'{}\' error.'.format(command.name), start='\n')
+            error('Please check if the command exists.')
+        elif not self.validate_command(command):
+            error('Command \'{}\' error.'.format(command.name), start='\n')
+            error('Please check value types of the command as well as its arguments.')
         else:
             exec('self.operate_{}(command)'.format(command.name))
             self.backup_service.trigger_backup()
 
 
     def operate_append(self, command: Command) -> None:
-        """ Function: Operation Code 'A' (Add Data) """
+        """ Method: Operation Code 'A' (Add Data) """
         value = command.value
 
         if command.contains_argument('--add'):
@@ -73,7 +76,7 @@ class OperationService:
 
 
     def operate_chart(self, command: Command) -> None:
-        """ Function: Operation Code 'C' (Create Charts) """
+        """ Method: Operation Code 'C' (Create Charts) """
         # Step 1: -average argument
         average_range = DEFAULT_AVERAGE_RANGE
         if command.contains_argument('-average-range'):
@@ -158,8 +161,6 @@ class OperationService:
                 return
 
         # Step 7: Render charts
-        time_start = perf_counter()
-
         self.render_service.render_all(
             allow_float=command.contains_argument('--allow-float'),
             average_range=average_range,
@@ -172,29 +173,27 @@ class OperationService:
             x_label=x_label
         )
 
-        notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
-
 
     def operate_reload(self, command: Command) -> None:
-        """ Function: Operation Code 'R' (Reload Storage) """
+        """ Method: Operation Code 'R' (Reload Storage) """
         self.storage.reload()
         notice('Storage \'{}\' is reloaded from disk.'.format(self.storage.name), start='\n')
 
 
     def operate_save(self, command: Command) -> None:
-        """ Function: Operation Code 'S' (Save Storage) """
+        """ Method: Operation Code 'S' (Save Storage) """
         self.storage.save()
         notice('Storage \'{}\' is saved to disk.'.format(self.storage.name), start='\n')
 
 
     def operate_view(self, command: Command) -> None:
-        """ Function: Operation Code 'V' (View Storage) """
+        """ Method: Operation Code 'V' (View Storage) """
         print()
         print(self.storage.data)
 
 
     def operate_exit(self, command: Command) -> None:
-        """ Function: Operation Code 'X' (Exit) """
+        """ Method: Operation Code 'X' (Exit) """
         notice('Exitting application.', start='\n')
         exit()
 
