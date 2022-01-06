@@ -6,7 +6,7 @@ from src.core.app_data import APP_NAME, AUTHOR, OPERATION_LIST, VERSION
 from src.model.storage import Storage
 from src.service.operation_service import OperationService
 from src.util.logging import notice
-from src.util.reader import extract_command_and_arguments
+from src.util.reader import extract_command_and_arguments, is_modification_argument, is_value_parsing_argument
 from settings import DEFAULT_STORAGE
 
 import sys
@@ -76,9 +76,14 @@ class ProgressTrackerApplication:
         if len(warning_segments) > 0:
             print()
         for warning in warning_segments:
-            notice('Command segment \'{}\', as well as its value, is not recognized by the program.'.format(warning))
+            if is_value_parsing_argument(warning):
+                notice('Argument \'{}\' as well as its value is not recognized by the program.'.format(warning))
+            elif is_modification_argument(warning):
+                notice('Argument \'{}\' is not recognized by the program.'.format(warning))
+            else:
+                notice('Command segment \'{}\' is not recognized by the program.'.format(warning))
         if len(warning_segments) > 0:
-            notice('Please keep in mind that unrecognized command segments may not take effect.', end=str())
+            notice('Note that unrecognized command segments will not take effect.', end=str())
 
 
 def main() -> None:

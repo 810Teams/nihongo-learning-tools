@@ -7,15 +7,15 @@ from math import ceil, floor
 from time import perf_counter
 
 from src.model.storage import Storage
-from src.util.logging import error
-from src.util.logging import notice
-from src.util.calculation import average, add_day_to_date
-from src.util.transform import transpose
+from src.util.logging import error, notice
+from src.util.calculation import average, add_day_to_date, compare_date
 from src.util.reader import contains_row_for_date, copy_list, is_empty, read_style
-from settings import BASE_DOTS_SIZE, DEFAULT_AVERAGE_RANGE, DEFAULT_DAYS, DEFAULT_DOTS_COUNT, DEFAULT_MAX_Y_LABELS, DEFAULT_STYLE, DEFAULT_X_LABEL, MAX_DOTS_SIZE_RETAIN, SHRINK_FACTOR
+from src.util.transform import transpose
+from src.util.validation import is_valid_style
+from settings import *
 
-import numpy
 import pygal
+
 
 class RenderService():
     def __init__(self, storage: Storage) -> None:
@@ -25,6 +25,7 @@ class RenderService():
             'rate default', 'rate stacked',
             'rate default average', 'rate stacked average'
         ]
+
 
     def render_all(
         self,
@@ -43,12 +44,24 @@ class RenderService():
         data = self.clean(self.storage.to_list())
         data = self.fill_missing_data(data, is_dynamic=is_dynamic, is_today=is_today)
 
-        # Arguments Validation
-        if not self.validate_arguments(data, average_range=average_range, days=days, dots_count=dots_count):
+        # Arguments Validation (Pre-slice)
+        if not self.validate_arguments_pre_slice(data, days=days, max_y_labels=max_y_labels, style=style, x_label=x_label):
+            error('Aborting chart creation process.')
             return
 
         # Slice Data
         data = self.slice_data(data, days=days)
+
+        # Arguments Manipulation
+        dots_count = min(dots_count, len(data))
+        if ceil(len(data)/2) < dots_count < len(data):
+            dots_count = ceil(len(data)/2)
+            notice('Dots count value is automatically set to {} to allow better-looking charts.'.format(dots_count), start='\n', end=str())
+
+        # Arguments Validation (Post-slice)
+        if not self.validate_arguments_post_slice(data, average_range=average_range, dots_count=dots_count):
+            error('Aborting chart creation process.')
+            return
 
         # Rendering
         time_start = perf_counter()
@@ -84,29 +97,6 @@ class RenderService():
         return data
 
 
-    def validate_arguments(self, data: list, average_range: int=DEFAULT_AVERAGE_RANGE, days: int=DEFAULT_DAYS, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
-        """ Method: Validates arguments which depends on the length of cleaned and filled data """
-        # -average argument
-        if average_range != None and not (1 <= average_range <= len(data) - 1):
-            error('Average range must be an integer from {} to {}.'.format(1, len(data) - 1), start='\n')
-            error('Aborting chart creation process.')
-            return False
-
-        # -days argument
-        if not (-len(data) + 2 <= days <= len(data) and days not in (1, 2)):
-            error('Days count must be an integer from {} to {}, and not 1 or 2.'.format(-len(data) + 2, len(data)), start='\n')
-            error('Aborting chart creation process.')
-            return False
-
-        # -dots-count argument
-        if dots_count < 0 or dots_count == 1:
-            error('Dots count must be an integer from {} to {}, and not 1.'.format(0, len(data)), start='\n')
-            error('Aborting chart creation process.')
-            return False
-
-        return True
-
-
     def fill_missing_data(self, data: list, is_dynamic: bool=False, is_today: bool=False) -> list:
         """ Method: Fill missing data """
         # Step 1: Prepare data
@@ -134,7 +124,7 @@ class RenderService():
 
         # Step 4: Fill until today based on the most recent data
         if is_today:
-            data = self.today_fill(data)
+            data_new = self.today_fill(data)
 
         # Step 3: Return
         return data_new
@@ -175,20 +165,68 @@ class RenderService():
 
     def today_fill(self, data: list) -> list:
         """ Method: Fill date until today """
-        today = str(datetime.now())
-        today = today[0:len(today)-7].split()[0]
+        data_copy = [i for i in data]
+        today = str(datetime.now().date())
+        most_recent_date = lambda: data_copy[-1][0].split()[0]
 
-        while data[-1][0].split()[0] != today:
-            data_copy = [i for i in data[-1]]
-            data.append(data_copy)
-            data[-1][0] = add_day_to_date(data[-1][0], days=1)
+        while compare_date(today, most_recent_date()) > 0:
+            data_last_row = [i for i in data_copy[-1]]
+            data_last_row[0] = add_day_to_date(data_last_row[0], days=1)
+            data_copy.append(data_last_row)
 
-        return data
+        return data_copy
+
+
+    def validate_arguments_pre_slice(
+        self,
+        data: list,
+        days: int=DEFAULT_DAYS,
+        max_y_labels: int=DEFAULT_MAX_Y_LABELS,
+        style: str=DEFAULT_STYLE,
+        x_label: str=DEFAULT_X_LABEL
+    ) -> bool:
+        """ Method: Validates arguments which depends on the length of cleaned and filled data """
+        # -days argument
+        if not (-len(data) + 2 <= days <= len(data) and days not in (1, 2)):
+            error('Days count must be an integer from {} to {}, and not 1 or 2.'.format(-len(data) + 2, len(data)), start='\n')
+            return False
+
+        # -max-y-labels
+        if not (max_y_labels >= 2):
+            error('Maximum y labels must be an integer at least 2.', start='\n')
+            return False
+
+        # -style argument
+        if not is_valid_style(style):
+            error('Invalid chart style.', start='\n')
+            return False
+
+        # -x-label argument
+        if x_label not in ('date', 'count', 'both'):
+            error('X-label type must be either \'date\', \'count\', or \'both\'', start='\n')
+            return False
+
+        return True
 
 
     def slice_data(self, data: list, days: int=DEFAULT_DAYS) -> list:
         """ Method: Slice data based on days count """
         return data[-1 * days:]
+
+
+    def validate_arguments_post_slice(self, data: list, average_range: int=DEFAULT_AVERAGE_RANGE, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
+        """ Method: Validates arguments which depends on the length of sliced data """
+        # -average argument
+        if average_range != None and not (1 <= average_range <= len(data) - 1):
+            error('Average range must be an integer from {} to {}.'.format(1, len(data) - 1), start='\n')
+            return False
+
+        # -dots-count argument
+        if not ((0 <= dots_count) and dots_count != 1):
+            error('Dots count must be an integer at least {}, and not {}.'.format(0, 1, start='\n'))
+            return False
+
+        return True
 
 
     def render_chart_total(self, data: list, max_y_labels: int=DEFAULT_MAX_Y_LABELS, style: str=DEFAULT_STYLE, allow_float: bool=False) -> None:
@@ -407,15 +445,22 @@ class RenderService():
         return data_range
 
 
-    def get_dot_data_list(self, data: list, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False) -> list:
+    def get_dot_data_list(self, data: list, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> list:
         """ Method: Get a list of dot node data based on data and dots count """
-        return [self.get_dot_data(data, i, dots_count=dots_count, force_visible=force_visible) for i in range(len(data))]
+        return [self.get_dot_data(data, i, dots_count=dots_count, force_visible=force_visible, visible_at_zero=visible_at_zero) for i in range(len(data))]
 
 
-    def get_dot_data(self, data: list, index: int, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False) -> dict:
+    def get_dot_data(self, data: list, index: int, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> dict:
         """ Method: Get dot node data for adding into chart based on actual data, index, and dots count """
-        dot_visibility = force_visible or self.get_dot_visibility(index, len(data), dots_count)
-        dot_size = self.calculate_dot_size(dots_count)
+        if force_visible:
+            dot_visibility = True
+            dot_size = self.calculate_dot_size(len(data))
+        else:
+            dot_visibility = self.get_dot_visibility(index, len(data), dots_count)
+            dot_size = self.calculate_dot_size(dots_count)
+
+        if not visible_at_zero and data[index] == 0:
+            dot_visibility = False
 
         return {'value': data[index], 'node': {'r': dot_visibility * dot_size}}
 

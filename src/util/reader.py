@@ -10,40 +10,51 @@ from src.model.command import Command
 
 
 def extract_command_and_arguments(line: str, get_warning: bool=False) -> Command:
-    line_parts = line.split(' ')
+    line_parts = line.strip().split(' ')
+    line_parts = [part for part in line_parts if part != str()]
 
     command = Command(line_parts[0], argument_list=list())
     warning_segments = list()
 
     i = 1
     arg_found = False
+    warning_arg_found = False
 
     while i < len(line_parts):
-        # Verify if argument exists in the command
-        if is_value_parsing_argument(line_parts[i]) or is_modification_argument(line_parts[i]):
-            operation = get_operation(command.name)
-            if not operation.contains_parameter(line_parts[i]):
-                warning_segments.append(line_parts[i])
-
         # Value-parsing argument spotted
         if is_value_parsing_argument(line_parts[i]):
-            command.argument_list.append(Argument(line_parts[i]))
             arg_found = True
+
+            if not get_operation(command.name).contains_parameter(line_parts[i]):
+                warning_segments.append(line_parts[i])
+                warning_arg_found = True
+            else:
+                command.argument_list.append(Argument(line_parts[i]))
+
 
         # Modification argument spotted
         elif is_modification_argument(line_parts[i]):
-            command.argument_list.append(Argument(line_parts[i]))
             arg_found = False
+
+            if not get_operation(command.name).contains_parameter(line_parts[i]):
+                warning_segments.append(line_parts[i])
+                warning_arg_found = True
+            else:
+                command.argument_list.append(Argument(line_parts[i]))
 
         # Previous item was argument, indicates that this is the value of the most recent argument
         elif arg_found:
-            command.argument_list[-1].value = line_parts[i]
             arg_found = False
+
+            if warning_arg_found:
+                warning_arg_found = False
+            else:
+                command.argument_list[-1].value = line_parts[i]
 
         # Value of the command itself
         elif command.value is None:
-            command.value = line_parts[i]
             arg_found = False
+            command.value = line_parts[i]
 
         # Incorrect segment found
         else:
@@ -57,11 +68,11 @@ def extract_command_and_arguments(line: str, get_warning: bool=False) -> Command
 
 
 def is_value_parsing_argument(line_part: str) -> bool:
-    return line_part[0] == '-' and line_part[1].isalpha()
+    return len(line_part) > 1 and line_part[0] == '-' and line_part[1].isalpha()
 
 
 def is_modification_argument(line_part: str) -> bool:
-    return line_part[0:2] == '--' and line_part[2].isalpha()
+    return len(line_part) > 2 and line_part[0:2] == '--' and line_part[2].isalpha()
 
 
 def operation_exists(name: str) -> bool:
@@ -125,14 +136,6 @@ def is_empty(value) -> bool:
 
 def copy_list(value: list) -> list:
     return [i for i in value]
-
-
-def is_valid_style(style_name: str) -> bool:
-    try:
-        exec('from pygal.style import {}'.format(style_name))
-        return True
-    except (NameError, SyntaxError, ImportError):
-        return False
 
 
 def read_style(style_name: str) -> Style:
