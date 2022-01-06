@@ -9,6 +9,8 @@ import pandas
 
 import os
 
+from src.util.reader import is_empty
+
 
 class Storage:
     def __init__(self, name):
@@ -25,15 +27,27 @@ class Storage:
 
     def load(self) -> None:
         """ Indirect User Method: Load Storage """
-        self.data = pandas.read_csv('data/' + self.name + '.csv')
+        columns = pandas.read_csv('data/' + self.name + '.csv').columns[1:]
+        temp_data = pandas.read_csv('data/' + self.name + '.csv', dtype=dict([(col, 'string_') for col in columns]))
+
+        dtype_data = dict()
+
+        for col in columns:
+            dtype_data[col] = 'Int64'
+            for item in temp_data[col]:
+                if not is_empty(item):
+                    try:
+                        int(item)
+                    except ValueError:
+                        dtype_data[col] = 'float64'
+                        break
+
+        self.data = pandas.read_csv('data/' + self.name + '.csv', dtype=dtype_data)
 
 
     def reload(self) -> None:
         """ Indirect User Method: Reload Storage """
-        try:
-            self.data = pandas.read_csv('data/' + self.name + '.csv')
-        except FileNotFoundError:
-            self.load()
+        self.load()
 
 
     def save(self) -> None:

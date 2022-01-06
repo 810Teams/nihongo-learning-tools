@@ -1,66 +1,71 @@
 """
-    `src/service/render.py`
+    `src/service/render_service.py`
 """
 
-from pygal.style import DefaultStyle, Style
-
 from datetime import datetime
-from datetime import timedelta
 from math import ceil, floor
 from time import perf_counter
 
 from src.model.storage import Storage
-from src.util.logging import error
-from src.util.logging import notice
-from src.util.calculation import average
-
-import numpy
-import pygal
-
+from src.util.logging import error, notice
+from src.util.calculation import average, add_day_to_date, compare_date
+from src.util.reader import contains_row_for_date, copy_list, is_empty, read_style
 from src.util.transform import transpose
+from src.util.validation import is_valid_style
+from settings import *
+
+import pygal
 
 
 class RenderService():
     def __init__(self, storage: Storage) -> None:
         self.storage = storage
-
         self.CHART_TYPE_LIST = [
             'total default', 'total stacked',
             'rate default', 'rate stacked',
             'rate default average', 'rate stacked average'
         ]
 
+
     def render_all(
         self,
+        average_range: int=DEFAULT_AVERAGE_RANGE,
+        days: int=DEFAULT_DAYS,
+        dots_count: int=DEFAULT_DOTS_COUNT,
+        max_y_labels: int=DEFAULT_MAX_Y_LABELS,
+        style: str=DEFAULT_STYLE,
+        x_label: str=DEFAULT_X_LABEL,
         allow_float: bool=False,
-        average_range: int=None,
-        days: int=0,
         is_dynamic: bool=False,
         is_today: bool=False,
-        max_dots: int=100,
-        max_y_labels: int=15,
-        style: str='DefaultStyle',
-        x_label: str='date'
     ) -> None:
-        """ Function: Analysis """
+        """ Method: Analysis """
         # Data Preparation
-        time_start = perf_counter()
-        data = self.clean(numpy.array(self.storage.data).tolist())
-        data = self.manipulate(data, days=days, is_dynamic=is_dynamic, is_today=is_today)
+        data = self.clean(self.storage.to_list())
+        data = self.fill_missing_data(data, is_dynamic=is_dynamic, is_today=is_today)
 
-        # Arguments Validation
-        if not self.validate_arguments(data, average_range=average_range, days=days):
+        # Arguments Validation (Pre-slice)
+        if not self.validate_arguments_pre_slice(data, days=days, max_y_labels=max_y_labels, style=style, x_label=x_label):
+            error('Aborting chart creation process.')
             return
 
-        # Style Loading
-        try:
-            exec('from pygal.style import {}'.format(style))
-            style = eval(style)
-        except (NameError, SyntaxError, ImportError):
-            error('Invalid style name. \'DefaultStyle\' will be used instead.', start='\n')
-            style = DefaultStyle
+        # Slice Data
+        data = self.slice_data(data, days=days)
+
+        # Arguments Manipulation
+        dots_count = min(dots_count, len(data))
+        if ceil(len(data)/2) < dots_count < len(data):
+            dots_count = ceil(len(data)/2)
+            notice('Dots count value is automatically set to {} to allow better-looking charts.'.format(dots_count), start='\n', end=str())
+
+        # Arguments Validation (Post-slice)
+        if not self.validate_arguments_post_slice(data, average_range=average_range, dots_count=dots_count):
+            error('Aborting chart creation process.')
+            return
 
         # Rendering
+        time_start = perf_counter()
+
         self.render_chart_total(data, allow_float=allow_float, max_y_labels=max_y_labels, style=style)
         for chart_type in self.CHART_TYPE_LIST:
             self.render_chart_development(
@@ -68,18 +73,17 @@ class RenderService():
                 allow_float=allow_float,
                 average_range=average_range,
                 chart_type=chart_type,
-                max_dots=max_dots,
+                dots_count=dots_count,
                 max_y_labels=max_y_labels,
                 style=style,
                 x_label=x_label
             )
 
-        # Report
         notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
 
     def clean(self, data: list) -> list:
-        """ Function: Clean Data """
+        """ Method: Clean Data """
         # Step 1 - Sort
         data.sort(key=lambda i: i[0])
 
@@ -93,126 +97,140 @@ class RenderService():
         return data
 
 
-    def manipulate(self, data: list, days: int=0, is_dynamic: bool=False, is_today: bool=False) -> list:
-        """ Function: Manipulate Data """
-        # Step 1 - Sort
-        data.sort(key=lambda i: i[0])
+    def fill_missing_data(self, data: list, is_dynamic: bool=False, is_today: bool=False) -> list:
+        """ Method: Fill missing data """
+        # Step 1: Prepare data
+        data_new = copy_list(data)
+        data_new.sort(key=lambda i: i[0])
 
-        # Step 2 - Add Missing Dates
-        if is_dynamic:
-            data = self.dynamic_fill(data)
-        else:
-            data = self.static_fill(data)
+        # Step 2: Add empty rows for missing dates
+        start_date = data_new[0][0]
+        end_date = data_new[-1][0]
 
-        # Step 3 - Sort Again
-        data.sort(key=lambda i: i[0])
+        while start_date != end_date:
+            if not contains_row_for_date(data_new, start_date):
+                data_new.append([start_date] + [None for _ in range(len(data_new[0]) - 1)])
+            start_date = add_day_to_date(start_date, days=1)
 
-        # Step 4 - Add Until Today
+        data_new.sort(key=lambda i: i[0])
+
+        # Step 3: Fill for each column
+        for col in range(1, len(data[0])):
+            column_transpose = [i[col] for i in data_new]
+            column_transpose = self.fill_missing_data_in_column(column_transpose, is_dynamic=is_dynamic)
+
+            for i in range(len(column_transpose)):
+                data_new[i][col] = column_transpose[i]
+
+        # Step 4: Fill until today based on the most recent data
         if is_today:
-            data = self.today_fill(data)
+            data_new = self.today_fill(data)
 
-        # Step 5 - Time Filtering
-        data = data[-1 * days:]
-
-        # Step 6 - Return
-        return data
+        # Step 3: Return
+        return data_new
 
 
-    def validate_arguments(self, data: list, average_range: int=None, days: int=0) -> bool:
-        """ Function: Validates arguments which depends on the length of cleaned data """
-        # Step 1: -average argument
-        if average_range != None and not (1 <= average_range <= len(data) - 1):
-            error('Average range must be an integer from {} to {}.'.format(1, len(data) - 1))
-            error('Aborting chart creation process.')
+    def fill_missing_data_in_column(self, data: list, is_dynamic: bool=False) -> list:
+        # Step 1: Determine missing indexes, store in groups
+        missing_index_list = [list()]
+
+        for i in range(len(data)):
+            if is_empty(data[i]):
+                missing_index_list[-1].append(i)
+            elif len(missing_index_list[-1]) > 0:
+                missing_index_list.append(list())
+
+        if len(missing_index_list[-1]) == 0:
+            missing_index_list = missing_index_list[:-1]
+
+        # Step 2: Fill
+        filled_data = copy_list(data)
+
+        for group in missing_index_list:
+            start = group[0] - 1
+            end = group[-1] + 1
+
+            difference = (filled_data[end] - filled_data[start])
+            increment = difference / (len(group) + 1)
+
+            for index in range(len(group)):
+                if is_dynamic:
+                    filled_data[group[index]] = int(filled_data[start] + index * increment)
+                else:
+                    filled_data[group[index]] = filled_data[group[0] - 1]
+
+        # Step 3: Return
+        return filled_data
+
+
+    def today_fill(self, data: list) -> list:
+        """ Method: Fill date until today """
+        data_copy = [i for i in data]
+        today = str(datetime.now().date())
+        most_recent_date = lambda: data_copy[-1][0].split()[0]
+
+        while compare_date(today, most_recent_date()) > 0:
+            data_last_row = [i for i in data_copy[-1]]
+            data_last_row[0] = add_day_to_date(data_last_row[0], days=1)
+            data_copy.append(data_last_row)
+
+        return data_copy
+
+
+    def validate_arguments_pre_slice(
+        self,
+        data: list,
+        days: int=DEFAULT_DAYS,
+        max_y_labels: int=DEFAULT_MAX_Y_LABELS,
+        style: str=DEFAULT_STYLE,
+        x_label: str=DEFAULT_X_LABEL
+    ) -> bool:
+        """ Method: Validates arguments which depends on the length of cleaned and filled data """
+        # -days argument
+        if not (-len(data) + 2 <= days <= len(data) and days not in (1, 2)):
+            error('Days count must be an integer from {} to {}, and not 1 or 2.'.format(-len(data) + 2, len(data)), start='\n')
             return False
 
-        # Step 2: -duration argument
-        if not (-len(data) + 2 <= days <= len(data) and days != 1):
-            error('Duration must be an integer from {} to {}, and not 1.'.format(-len(data) + 2, len(data)))
-            error('Aborting chart creation process.')
+        # -max-y-labels
+        if not (max_y_labels >= 2):
+            error('Maximum y labels must be an integer at least 2.', start='\n')
+            return False
+
+        # -style argument
+        if not is_valid_style(style):
+            error('Invalid chart style.', start='\n')
+            return False
+
+        # -x-label argument
+        if x_label not in ('date', 'count', 'both'):
+            error('X-label type must be either \'date\', \'count\', or \'both\'', start='\n')
             return False
 
         return True
 
 
-    def add_day_to_date(self, date_string: str, days: int) -> str:
-        """ Function: Add days to date """
-        date = datetime.strptime(date_string, '%Y-%m-%d')
-        added_days = timedelta(days=days)
-
-        return str(date + added_days).split()[0]
+    def slice_data(self, data: list, days: int=DEFAULT_DAYS) -> list:
+        """ Method: Slice data based on days count """
+        return data[-1 * days:]
 
 
-    def static_fill(self, data: list) -> list:
-        """ Function: Fill missing data statically """
-        missing_dates = list()
-        start_date = data[0][0]
-        end_date = data[-1][0]
+    def validate_arguments_post_slice(self, data: list, average_range: int=DEFAULT_AVERAGE_RANGE, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
+        """ Method: Validates arguments which depends on the length of sliced data """
+        # -average argument
+        if average_range != None and not (1 <= average_range <= len(data) - 1):
+            error('Average range must be an integer from {} to {}.'.format(1, len(data) - 1), start='\n')
+            return False
 
-        # Step 1: Fill missing gaps
-        while start_date != end_date:
-            if start_date not in [i[0] for i in data]:
-                select = [i for i in data if i[0] == self.add_day_to_date(start_date, -1)][0]
-                missing_dates.append([start_date] + select[1:])
-            start_date = self.add_day_to_date(start_date, 1)
-            data += missing_dates
-            missing_dates = []
+        # -dots-count argument
+        if not ((0 <= dots_count) and dots_count != 1):
+            error('Dots count must be an integer at least {}, and not {}.'.format(0, 1, start='\n'))
+            return False
 
-        # Step 2: Return
-        return data
+        return True
 
 
-    def dynamic_fill(self, data: list) -> list:
-        """ Function: Fill missing data dynamically """
-        missing_dates = [list()]
-        start_date = data[0][0]
-        end_date = data[-1][0]
-
-        # Step 1: Determines missing dates
-        while start_date != end_date:
-            if start_date not in [i[0] for i in data]:
-                missing_dates[-1].append(start_date)
-            elif len(missing_dates[-1]) > 0:
-                missing_dates.append(list())
-            start_date = self.add_day_to_date(start_date, 1)
-
-        if len(missing_dates[-1]) == 0:
-            missing_dates = missing_dates[:-1]
-
-        # Step 2: Pinpoint
-        for i in range(len(missing_dates)):
-            data_start = [j for j in data if j[0] == self.add_day_to_date(missing_dates[i][0], -1)][0]
-            data_end   = [j for j in data if j[0] == self.add_day_to_date(missing_dates[i][-1], 1)][0]
-
-            for j in range(len(missing_dates[i])):
-                missing_dates[i][j] = [missing_dates[i][j]]
-                for k in range(1, len(data_start)):
-                    missing_dates[i][j].append(data_start[k] + int((j + 1)/(len(missing_dates[i]) + 1) * (data_end[k] - data_start[k])))
-
-        # Step 3: Append
-        for i in missing_dates:
-            for j in i:
-                data.append(j)
-
-        # Step 4: Return
-        return data
-
-
-    def today_fill(self, data: list) -> list:
-        """ Function: Fill date until today """
-        today = str(datetime.now())
-        today = today[0:len(today)-7].split()[0]
-
-        while data[-1][0].split()[0] != today:
-            data_copy = [i for i in data[-1]]
-            data.append(data_copy)
-            data[-1][0] = self.add_day_to_date(data[-1][0], 1)
-
-        return data
-
-
-    def render_chart_total(self, data: list, allow_float: bool=False, max_y_labels: int=15, style: Style=DefaultStyle) -> None:
-        """ Function: Kanji Total Analysis """
+    def render_chart_total(self, data: list, max_y_labels: int=DEFAULT_MAX_Y_LABELS, style: str=DEFAULT_STYLE, allow_float: bool=False) -> None:
+        """ Method: Kanji Total Analysis """
         chart = pygal.Bar()
 
         # Chart Data
@@ -237,25 +255,25 @@ class RenderService():
         chart.legend_box_size = 16
 
         # Chart Render
-        chart.style = style
+        chart.style = read_style(style)
         chart.render_to_file('charts/{}_total.svg'.format(self.storage.name.lower()))
 
         # Notice
-        notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()))
+        notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()), start='\n')
 
 
     def render_chart_development(
         self,
         data: list,
-        allow_float: bool=False,
-        average_range: int=None,
         chart_type: str='total default',
-        max_dots: int=100,
-        max_y_labels: int=15,
-        style: Style=DefaultStyle,
-        x_label: str='date'
+        average_range: int=DEFAULT_AVERAGE_RANGE,
+        dots_count: int=DEFAULT_DOTS_COUNT,
+        max_y_labels: int=DEFAULT_MAX_Y_LABELS,
+        style: str=DEFAULT_STYLE,
+        x_label: str=DEFAULT_X_LABEL,
+        allow_float: bool=False,
     ) -> None:
-        """ Function: Kanji Development Analysis """
+        """ Method: Kanji Development Analysis """
         # Chart Type Check
         if chart_type not in self.CHART_TYPE_LIST:
             error('Invalid chart type found. Aborting chart creation process.', start='\n')
@@ -268,31 +286,25 @@ class RenderService():
             chart = pygal.StackedLine()
 
         # Chart Data
-        dots_every = 1
-        while len(data)/dots_every > max_dots:
-            dots_every += 1
-
-        get_dot_data = lambda _value, _i, _len: {
-            'value': _value,
-            'node': {
-                'r': (_i % dots_every == 0 or _i == _len - 1) * 2
-            }
-        }
-        get_dot_data_list = lambda _data: [
-            get_dot_data(_data[i], i, len(_data)) for i in range(len(_data))
-        ]
-
         columns = self.storage.get_columns()
+
         if 'total' in chart_type:
             for i in range(len(columns)):
-                chart.add(columns[i], get_dot_data_list(transpose(data)[1:][i]))
+                chart.add(
+                    columns[i],
+                    self.get_dot_data_list(transpose(data)[1:][i], dots_count=dots_count),
+                    force_visible=False
+                )
 
         elif 'rate' in chart_type:
             data_rate = [[data[i][j] - data[i - 1][j] for i in range(1, len(data))] for j in range(1, len(columns) + 1)]
 
             if 'average' not in chart_type:
                 for i in range(len(columns)):
-                    chart.add(columns[i], get_dot_data_list(data_rate[i]))
+                    chart.add(
+                        columns[i],
+                        self.get_dot_data_list(data_rate[i], dots_count=dots_count, force_visible=True)
+                    )
             else:
                 data_average = list()
                 for i in range(len(columns)):
@@ -307,7 +319,10 @@ class RenderService():
                             elif average_range <= j:
                                 temp.append(round(average(data_rate[i][j - average_range + 1:j + 1]), 2))
 
-                    chart.add(columns[i], get_dot_data_list(temp))
+                    chart.add(
+                        columns[i],
+                        self.get_dot_data_list(temp, dots_count=dots_count, force_visible=False)
+                    )
                     data_average.append(temp)
 
         # Chart Titles
@@ -377,7 +392,7 @@ class RenderService():
         chart.legend_box_size = 16
 
         # Chart Style
-        chart.style = style
+        chart.style = read_style(style)
         if 'default' in chart_type:
             chart.fill = False
             chart.stroke_style = {
@@ -404,8 +419,8 @@ class RenderService():
         notice('Chart \'{}\' successfully exported.'.format(file_name))
 
 
-    def calculate_y_labels(self, data_min, data_max, allow_float: bool=False, max_y_labels: int=15) -> list:
-        """ Function: Calculate """
+    def calculate_y_labels(self, data_min, data_max, max_y_labels: int=DEFAULT_MAX_Y_LABELS, allow_float: bool=False) -> list:
+        """ Method: Calculate y-labels """
         data_min = floor(data_min)
         data_max = ceil(data_max)
 
@@ -428,3 +443,42 @@ class RenderService():
             data_range = [i/100 for i in data_range]
 
         return data_range
+
+
+    def get_dot_data_list(self, data: list, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> list:
+        """ Method: Get a list of dot node data based on data and dots count """
+        return [self.get_dot_data(data, i, dots_count=dots_count, force_visible=force_visible, visible_at_zero=visible_at_zero) for i in range(len(data))]
+
+
+    def get_dot_data(self, data: list, index: int, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> dict:
+        """ Method: Get dot node data for adding into chart based on actual data, index, and dots count """
+        if force_visible:
+            dot_visibility = True
+            dot_size = self.calculate_dot_size(len(data))
+        else:
+            dot_visibility = self.get_dot_visibility(index, len(data), dots_count)
+            dot_size = self.calculate_dot_size(dots_count)
+
+        if not visible_at_zero and data[index] == 0:
+            dot_visibility = False
+
+        return {'value': data[index], 'node': {'r': dot_visibility * dot_size}}
+
+
+    def get_dot_visibility(self, index: int, data_length: int, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
+        """ Method: Calculate dot visibility based on index, data length, and desired dots count """
+        if dots_count < 2:
+            return False
+
+        is_right_step = floor(index % ((data_length - 1) / (dots_count - 1))) == 0
+        is_last_index = index == data_length - 1
+
+        return is_right_step or is_last_index
+
+
+    def calculate_dot_size(self, dots_count: int=DEFAULT_DOTS_COUNT) -> float:
+        """ Method: Calculate dot size based on dots count """
+        weight = MAX_DOTS_SIZE_RETAIN + max(0, dots_count - MAX_DOTS_SIZE_RETAIN) / SHRINK_FACTOR
+        margin = max(MAX_DOTS_SIZE_RETAIN, dots_count)
+
+        return (weight / margin) * BASE_DOTS_SIZE
