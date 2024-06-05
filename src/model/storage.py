@@ -65,6 +65,9 @@ class Storage:
     def setup(self, columns) -> pandas.DataFrame:
         """ System Method: View Storage """
         self.data = pandas.DataFrame([], columns=['timestamp'] + columns)
+        f = open('{}'.format(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION), 'w')
+        f.write('timestamp,{}'.format(','.join(columns)))
+        f.close()
 
 
     def try_load(self) -> bool:
