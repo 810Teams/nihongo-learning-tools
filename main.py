@@ -2,7 +2,7 @@
     `main.py`
 """
 
-from src.core.app_data import APP_NAME, AUTHOR, OPERATION_LIST, VERSION
+from src.core.app_data import APP_NAME, AUTHOR, OPERATION_LIST, VERSION, CHART_BASE_PATH, STORAGE_BASE_PATH
 from src.model.command import Command
 from src.model.storage import Storage
 from src.service.operation_service import OperationService
@@ -10,6 +10,7 @@ from src.util.logging import notice
 from src.util.reader import extract_command_and_arguments, is_modification_argument, is_value_parsing_argument
 from settings import DEFAULT_STORAGE
 
+import os
 import sys
 
 
@@ -83,10 +84,20 @@ class ProgressTrackerApplication:
         if len(warning_segments) > 0:
             notice('Note that unrecognized command segments will not take effect.', end=str())
 
+    def setup(self, folder_path_list: list=[]) -> None:
+        """ Method: Verify required folder paths and set up folders if not exist """
+        folder_path: str
+        for folder_path in folder_path_list:
+            try:
+                os.mkdir(folder_path)
+            except FileExistsError:
+                pass
+
 
 def main() -> None:
     """ Main function """
     application = ProgressTrackerApplication()
+    application.setup([CHART_BASE_PATH, STORAGE_BASE_PATH])
     application.run()
 
 
