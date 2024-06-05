@@ -1,5 +1,5 @@
 """
-    `src/app_data.py`
+    `src/core/app_data.py`
 """
 
 from settings import DEFAULT_AVERAGE_RANGE, DEFAULT_DAYS, DEFAULT_DOTS_COUNT, DEFAULT_MAX_Y_LABELS, DEFAULT_STYLE, DEFAULT_X_LABEL
@@ -9,7 +9,15 @@ from src.model.parameter import Parameter
 
 APP_NAME = 'Progress Tracker Application'
 AUTHOR = '810Teams'
-VERSION = 'v2.1.0'
+VERSION = 'v3.0.0a'
+
+STORAGE_BASE_PATH = 'data/'
+STORAGE_FILE_EXTENSION = '.csv'
+CHART_BASE_PATH = 'charts/'
+
+VALUE_PARSING_ARGUMENT_IDENTIFIER = '-'
+MODIFICATION_ARGUMENT_IDENTIFIER = '--'
+
 
 OPERATION_LIST = [
     Operation('append', value_type=str, description='Append Data', parameter_list=[

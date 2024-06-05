@@ -2,8 +2,9 @@
     `src/service/backup_service.py`
 """
 
-from settings import BACKUP_PATH, ENABLE_BACKUP
 from datetime import date
+from settings import BACKUP_PATH, ENABLE_BACKUP
+from src.core.app_data import STORAGE_BASE_PATH, STORAGE_FILE_EXTENSION
 
 import shutil
 
@@ -22,11 +23,11 @@ class BackupService:
     def copy(self) -> None:
         """ Method: Copy data and save elsewhere as backup """
         shutil.copy2(
-            'data/{}'.format(
-                self.storage_name + '.csv'
+            '{}'.format(
+                STORAGE_BASE_PATH + self.storage_name + STORAGE_FILE_EXTENSION
             ),
             '{}/{}'.format(
                 BACKUP_PATH.rstrip('/').rstrip('\\'),
-                self.storage_name + '_' + date.today().__str__() + '.csv'
+                self.storage_name + '_' + date.today().__str__() + STORAGE_FILE_EXTENSION
             )
         )

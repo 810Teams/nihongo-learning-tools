@@ -3,6 +3,7 @@
 """
 
 from datetime import datetime
+from src.core.app_data import STORAGE_BASE_PATH, STORAGE_FILE_EXTENSION
 
 import numpy
 import pandas
@@ -27,8 +28,8 @@ class Storage:
 
     def load(self) -> None:
         """ Indirect User Method: Load Storage """
-        columns = pandas.read_csv('data/' + self.name + '.csv').columns[1:]
-        temp_data = pandas.read_csv('data/' + self.name + '.csv', dtype=dict([(col, 'string_') for col in columns]))
+        columns = pandas.read_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION).columns[1:]
+        temp_data = pandas.read_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION, dtype=dict([(col, 'string_') for col in columns]))
 
         dtype_data = dict()
 
@@ -42,7 +43,7 @@ class Storage:
                         dtype_data[col] = 'float64'
                         break
 
-        self.data = pandas.read_csv('data/' + self.name + '.csv', dtype=dtype_data)
+        self.data = pandas.read_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION, dtype=dtype_data)
 
 
     def reload(self) -> None:
@@ -53,11 +54,11 @@ class Storage:
     def save(self) -> None:
         """ User Method: Save Storage """
         try:
-            os.remove(self.name + '.csv')
+            os.remove(self.name + STORAGE_FILE_EXTENSION)
         except FileNotFoundError:
             pass
 
-        self.data.to_csv('data/' + self.name + '.csv', index=None, header=True)
+        self.data.to_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION, index=None, header=True)
         self.reload()
 
 
@@ -70,7 +71,7 @@ class Storage:
         """ System Method: Try loading a storage """
         try:
             if self.data == None:
-                pandas.read_csv('data/' + self.name + '.csv')
+                pandas.read_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION)
             return True
         except FileNotFoundError:
             return False

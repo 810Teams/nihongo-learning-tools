@@ -4,7 +4,7 @@
 
 from pygal.style import DefaultStyle, Style
 from src.model.operation import Operation
-from src.core.app_data import OPERATION_LIST
+from src.core.app_data import OPERATION_LIST, VALUE_PARSING_ARGUMENT_IDENTIFIER, MODIFICATION_ARGUMENT_IDENTIFIER
 from src.model.argument import Argument
 from src.model.command import Command
 
@@ -68,11 +68,11 @@ def extract_command_and_arguments(line: str, get_warning: bool=False) -> Command
 
 
 def is_value_parsing_argument(line_part: str) -> bool:
-    return len(line_part) > 1 and line_part[0] == '-' and line_part[1].isalpha()
+    return len(line_part) > 1 and line_part[0] == VALUE_PARSING_ARGUMENT_IDENTIFIER and line_part[1].isalpha()
 
 
 def is_modification_argument(line_part: str) -> bool:
-    return len(line_part) > 2 and line_part[0:2] == '--' and line_part[2].isalpha()
+    return len(line_part) > 2 and line_part[0:2] == MODIFICATION_ARGUMENT_IDENTIFIER and line_part[2].isalpha()
 
 
 def operation_exists(name: str) -> bool:
