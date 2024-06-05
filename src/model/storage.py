@@ -22,7 +22,7 @@ class Storage:
         """ User Method: Append Data """
         time = str(datetime.now())
         row = pandas.DataFrame([[time[0:len(time)-7]] + new_data], columns=list(self.data.columns))
-        self.data = self.data.append(row)
+        self.data = self.data.add(row)
 
 
     def load(self) -> None:
