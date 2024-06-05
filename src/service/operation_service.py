@@ -3,6 +3,7 @@
 """
 
 from custom.append import custom_append_head
+from src.core.app_data import OperationList
 from src.service.backup_service import BackupService
 from src.model.operation import Operation
 from src.core.app_data import OPERATION_LIST
@@ -36,7 +37,7 @@ class OperationService:
         """ Method: Operation Code 'A' (Add Data) """
         value = command.value
 
-        if command.contains_argument('--add'):
+        if command.contains_argument(OperationList.Append.ParameterList.add.name):
             try:
                 value = convert_csv_to_list(value, value_type=int, replace_null=0)
                 initial = self.storage.to_list()[-1][1:]
@@ -46,9 +47,9 @@ class OperationService:
             except ValueError:
                 error('Invalid value format. Please try again.', start='\n')
 
-        elif command.contains_argument('-custom'):
+        elif command.contains_argument(OperationList.Append.ParameterList.custom.name):
             try:
-                custom_id = int(command.get_argument('-custom').value)
+                custom_id = int(command.get_argument(OperationList.Append.ParameterList.custom.name).value)
                 if custom_id not in (1, 2, 3, 4, 5):
                     error('Custom ID must be an integer from 1 to 5.', start='\n')
                     return
@@ -76,9 +77,9 @@ class OperationService:
         """ Method: Operation Code 'C' (Create Charts) """
         # Step 1: -average argument
         average_range = DEFAULT_AVERAGE_RANGE
-        if command.contains_argument('-average-range'):
+        if command.contains_argument(OperationList.Chart.ParameterList.average_range.name):
             try:
-                average_range = int(command.get_argument('-average-range').value)
+                average_range = int(command.get_argument(OperationList.Chart.ParameterList.average_range.name).value)
             except ValueError:
                 error('Average range must be an integer.', start='\n')
                 error('Aborting chart creation process.')
@@ -86,9 +87,9 @@ class OperationService:
 
         # Step 2: -days argument
         days = DEFAULT_DAYS
-        if command.contains_argument('-days'):
+        if command.contains_argument(OperationList.Chart.ParameterList.days.name):
             try:
-                days = int(command.get_argument('-days').value)
+                days = OperationList.Chart.ParameterList.days.value_type(command.get_argument(OperationList.Chart.ParameterList.days.name).value)
             except ValueError:
                 error('Duration must be an integer.', start='\n')
                 error('Aborting chart creation process.')
@@ -106,9 +107,9 @@ class OperationService:
 
         # Step 4: -max-y argument
         max_y_labels = DEFAULT_MAX_Y_LABELS
-        if command.contains_argument('-max-y'):
+        if command.contains_argument(OperationList.Chart.ParameterList.max_y.name):
             try:
-                max_y_labels = int(command.get_argument('-max-y').value)
+                max_y_labels = int(command.get_argument(OperationList.Chart.ParameterList.max_y.name).value)
             except ValueError:
                 error('Maximum y labels must be an integer.', start='\n')
                 error('Aborting chart creation process.')
@@ -116,21 +117,21 @@ class OperationService:
 
         # Step 5: -style argument
         style = DEFAULT_STYLE
-        if command.contains_argument('-style'):
-            style = command.get_argument('-style').value
+        if command.contains_argument(OperationList.Chart.ParameterList.style.name):
+            style = command.get_argument(OperationList.Chart.ParameterList.style.name).value
 
         # Step 6: -x-label argument
         x_label = DEFAULT_X_LABEL
-        if command.contains_argument('-x-label'):
-            x_label = command.get_argument('-x-label').value
+        if command.contains_argument(OperationList.Chart.ParameterList.x_label.name):
+            x_label = command.get_argument(OperationList.Chart.ParameterList.x_label.name).value
 
         # Step 7: Render charts
         self.render_service.render_all(
-            allow_float=command.contains_argument('--allow-float'),
+            allow_float=command.contains_argument(OperationList.Chart.ParameterList.allow_float.name),
             average_range=average_range,
             days=days,
-            is_dynamic=command.contains_argument('--dynamic'),
-            is_today=command.contains_argument('--today'),
+            is_dynamic=command.contains_argument(OperationList.Chart.ParameterList.dynamic.name),
+            is_today=command.contains_argument(OperationList.Chart.ParameterList.today.name),
             dots_count=dots_count,
             max_y_labels=max_y_labels,
             style=style,
