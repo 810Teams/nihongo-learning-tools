@@ -3,6 +3,7 @@
 """
 
 from src.core.app_data import APP_NAME, AUTHOR, OPERATION_LIST, VERSION
+from src.model.command import Command
 from src.model.storage import Storage
 from src.service.operation_service import OperationService
 from src.util.logging import notice
@@ -14,8 +15,7 @@ import sys
 
 class ProgressTrackerApplication:
     def __init__(self) -> None:
-        self.operation_service = None
-
+        self.operation_service: OperationService = None
 
     def run(self) -> None:
         """ Method: Run the application """
@@ -42,7 +42,7 @@ class ProgressTrackerApplication:
             notice('Storage \'{}\' does not exist yet and requires set-up.'.format(storage.name), start='\n')
             notice('Please input the columns of the storage')
             print()
-            columns = input('(Input) ').strip().replace(' ', str()).split(',')
+            columns: list = input('(Input) ').strip().replace(' ', str()).split(',')
             storage.setup(columns)
 
         storage.load()
@@ -56,7 +56,6 @@ class ProgressTrackerApplication:
         self.operation_service = OperationService(storage)
         self.start()
 
-
     def start(self) -> None:
         """ Method: Start operating the application """
         while True:
@@ -69,10 +68,9 @@ class ProgressTrackerApplication:
             self.display_command_warnings(line)
             self.operation_service.execute(extract_command_and_arguments(line))
 
-
     def display_command_warnings(self, line: str) -> None:
         """ Method: Display command warnings before the command execution """
-        warning_segments = extract_command_and_arguments(line, get_warning=True)
+        warning_segments: Command = extract_command_and_arguments(line, get_warning=True)
         if len(warning_segments) > 0:
             print()
         for warning in warning_segments:
@@ -87,6 +85,7 @@ class ProgressTrackerApplication:
 
 
 def main() -> None:
+    """ Main function """
     application = ProgressTrackerApplication()
     application.run()
 

@@ -26,7 +26,6 @@ class RenderService():
             'rate default average', 'rate stacked average'
         ]
 
-
     def render_all(
         self,
         average_range: int=DEFAULT_AVERAGE_RANGE,
@@ -81,7 +80,6 @@ class RenderService():
 
         notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
-
     def clean(self, data: list) -> list:
         """ Method: Clean Data """
         # Step 1 - Sort
@@ -95,7 +93,6 @@ class RenderService():
 
         # Step 4 - Return
         return data
-
 
     def fill_missing_data(self, data: list, is_dynamic: bool=False, is_today: bool=False) -> list:
         """ Method: Fill missing data """
@@ -129,7 +126,6 @@ class RenderService():
         # Step 3: Return
         return data_new
 
-
     def fill_missing_data_in_column(self, data: list, is_dynamic: bool=False) -> list:
         # Step 1: Determine missing indexes, store in groups
         missing_index_list = [list()]
@@ -162,7 +158,6 @@ class RenderService():
         # Step 3: Return
         return filled_data
 
-
     def today_fill(self, data: list) -> list:
         """ Method: Fill date until today """
         data_copy = [i for i in data]
@@ -175,7 +170,6 @@ class RenderService():
             data_copy.append(data_last_row)
 
         return data_copy
-
 
     def validate_arguments_pre_slice(
         self,
@@ -208,11 +202,9 @@ class RenderService():
 
         return True
 
-
     def slice_data(self, data: list, days: int=DEFAULT_DAYS) -> list:
         """ Method: Slice data based on days count """
         return data[-1 * days:]
-
 
     def validate_arguments_post_slice(self, data: list, average_range: int=DEFAULT_AVERAGE_RANGE, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
         """ Method: Validates arguments which depends on the length of sliced data """
@@ -228,9 +220,8 @@ class RenderService():
 
         return True
 
-
     def render_chart_total(self, data: list, max_y_labels: int=DEFAULT_MAX_Y_LABELS, style: str=DEFAULT_STYLE, allow_float: bool=False) -> None:
-        """ Method: Kanji Total Analysis """
+        """ Method: Total Analysis """
         chart = pygal.Bar()
 
         # Chart Data
@@ -261,7 +252,6 @@ class RenderService():
         # Notice
         notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()), start='\n')
 
-
     def render_chart_development(
         self,
         data: list,
@@ -273,7 +263,7 @@ class RenderService():
         x_label: str=DEFAULT_X_LABEL,
         allow_float: bool=False,
     ) -> None:
-        """ Method: Kanji Development Analysis """
+        """ Method: Development Analysis """
         # Chart Type Check
         if chart_type not in self.CHART_TYPE_LIST:
             error('Invalid chart type found. Aborting chart creation process.', start='\n')
@@ -418,11 +408,10 @@ class RenderService():
         # Notice
         notice('Chart \'{}\' successfully exported.'.format(file_name))
 
-
-    def calculate_y_labels(self, data_min, data_max, max_y_labels: int=DEFAULT_MAX_Y_LABELS, allow_float: bool=False) -> list:
+    def calculate_y_labels(self, data_min: float, data_max: float, max_y_labels: int=DEFAULT_MAX_Y_LABELS, allow_float: bool=False) -> list:
         """ Method: Calculate y-labels """
-        data_min = floor(data_min)
-        data_max = ceil(data_max)
+        data_min: int = floor(data_min)
+        data_max: int = ceil(data_max)
 
         if allow_float:
             data_min *= 100
@@ -444,11 +433,9 @@ class RenderService():
 
         return data_range
 
-
     def get_dot_data_list(self, data: list, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> list:
         """ Method: Get a list of dot node data based on data and dots count """
         return [self.get_dot_data(data, i, dots_count=dots_count, force_visible=force_visible, visible_at_zero=visible_at_zero) for i in range(len(data))]
-
 
     def get_dot_data(self, data: list, index: int, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> dict:
         """ Method: Get dot node data for adding into chart based on actual data, index, and dots count """
@@ -464,7 +451,6 @@ class RenderService():
 
         return {'value': data[index], 'node': {'r': dot_visibility * dot_size}}
 
-
     def get_dot_visibility(self, index: int, data_length: int, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
         """ Method: Calculate dot visibility based on index, data length, and desired dots count """
         if dots_count < 2:
@@ -474,7 +460,6 @@ class RenderService():
         is_last_index = index == data_length - 1
 
         return is_right_step or is_last_index
-
 
     def calculate_dot_size(self, dots_count: int=DEFAULT_DOTS_COUNT) -> float:
         """ Method: Calculate dot size based on dots count """

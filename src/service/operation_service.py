@@ -16,13 +16,13 @@ from settings import DEFAULT_AVERAGE_RANGE, DEFAULT_DAYS, DEFAULT_DOTS_COUNT, DE
 
 class OperationService:
     def __init__(self, storage: Storage) -> None:
-        self.storage = storage
-        self.render_service = RenderService(storage)
-        self.backup_service = BackupService(storage.name)
-
+        self.storage: Storage = storage
+        self.render_service: RenderService = RenderService(storage)
+        self.backup_service: BackupService = BackupService(storage.name)
 
     def execute(self, command: Command) -> None:
-        if self.find_operation(command) == None:
+        """ Method: Validate and execute command """
+        if self.find_operation(command) is None:
             error('Command \'{}\' error.'.format(command.name), start='\n')
             error('Please check if the command exists.')
         elif not self.validate_command(command):
@@ -32,7 +32,6 @@ class OperationService:
             exec('self.operate_{}(command)'.format(command.name))
             self.backup_service.trigger_backup()
 
-
     def operate_append(self, command: Command) -> None:
         """ Method: Operation Code 'A' (Add Data) """
         value = command.value
@@ -41,7 +40,6 @@ class OperationService:
             try:
                 value = convert_csv_to_list(value, value_type=int, replace_null=0)
                 initial = self.storage.to_list()[-1][1:]
-
                 new_row = [int(initial[i]) + value[i] for i in range(len(initial))]
                 self.storage.append(new_row)
                 notice('Data {} is added to the storage.'.format(new_row), start='\n')
@@ -73,7 +71,6 @@ class OperationService:
                 notice('Data {} is added to the storage.'.format(new_row), start='\n')
             except ValueError:
                 error('Invalid value format. Please try again.', start='\n')
-
 
     def operate_chart(self, command: Command) -> None:
         """ Method: Operation Code 'C' (Create Charts) """
@@ -140,41 +137,37 @@ class OperationService:
             x_label=x_label
         )
 
-
     def operate_reload(self, command: Command) -> None:
         """ Method: Operation Code 'R' (Reload Storage) """
         self.storage.reload()
         notice('Storage \'{}\' is reloaded from disk.'.format(self.storage.name), start='\n')
-
 
     def operate_save(self, command: Command) -> None:
         """ Method: Operation Code 'S' (Save Storage) """
         self.storage.save()
         notice('Storage \'{}\' is saved to disk.'.format(self.storage.name), start='\n')
 
-
     def operate_view(self, command: Command) -> None:
         """ Method: Operation Code 'V' (View Storage) """
         print()
         print(self.storage.data)
-
 
     def operate_exit(self, command: Command) -> None:
         """ Method: Operation Code 'X' (Exit) """
         notice('Exitting application.', start='\n')
         exit()
 
-
     def validate_command(self, command: Command) -> bool:
-        operation = self.find_operation(command)
+        """ Method: Validate command """
+        operation: Operation = self.find_operation(command)
 
         if operation is None:
             return False
 
         return operation.validate_command(command)
 
-
     def find_operation(self, command: Command) -> Operation:
+        """ Method: Find operation """
         operation: Operation
         for operation in OPERATION_LIST:
             if command.name == operation.name:

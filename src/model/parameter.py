@@ -7,9 +7,9 @@ from src.model.argument import Argument
 
 class Parameter:
     def __init__(self, name: str, value_type: type=None, description: str=str()):
-        self.name = name
-        self.value_type = value_type
-        self.description = description
+        self.name: str = name
+        self.value_type: type = value_type
+        self.description: str = description
 
     def __str__(self) -> str:
         message = '{}'.format(self.name)
@@ -23,6 +23,7 @@ class Parameter:
         return message
 
     def validate_argument(self, argument: Argument) -> bool:
+        """ Method: Validate argument """
         if self.name != argument.name:
             return False
         if self.value_type is None and argument.value is not None:

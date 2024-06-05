@@ -11,6 +11,7 @@ def average(data: list):
 
 
 def compare_date(date_string_a: str, date_string_b: str) -> int:
+    """ Function: Get date difference between 2 dates """
     date_a = datetime.strptime(date_string_a, '%Y-%m-%d')
     date_b = datetime.strptime(date_string_b, '%Y-%m-%d')
 

@@ -10,17 +10,16 @@ from src.model.command import Command
 
 
 def extract_command_and_arguments(line: str, get_warning: bool=False) -> Command:
-    line_parts = line.strip().split(' ')
-    line_parts = [part for part in line_parts if part != str()]
+    """ Function: Convert a line of string to command object """
+    line_parts: list = line.strip().split(' ')
 
-    command = Command(line_parts[0], argument_list=list())
-    warning_segments = list()
+    command: Command = Command(line_parts[0], argument_list=list())
+    warning_segments: list = list()
 
-    i = 1
-    arg_found = False
-    warning_arg_found = False
+    arg_found: bool = False
+    warning_arg_found: bool = False
 
-    while i < len(line_parts):
+    for i in range(1, len(line_parts)):
         # Value-parsing argument spotted
         if is_value_parsing_argument(line_parts[i]):
             arg_found = True
@@ -60,22 +59,23 @@ def extract_command_and_arguments(line: str, get_warning: bool=False) -> Command
         else:
             warning_segments.append(line_parts[i])
 
-        i += 1
-
     if get_warning:
         return warning_segments
     return command
 
 
 def is_value_parsing_argument(line_part: str) -> bool:
+    """ Function: Verify if value parsing argument type """
     return len(line_part) > 1 and line_part[0] == VALUE_PARSING_ARGUMENT_IDENTIFIER and line_part[1].isalpha()
 
 
 def is_modification_argument(line_part: str) -> bool:
+    """ Function: Verify if modification argument type """
     return len(line_part) > 2 and line_part[0:2] == MODIFICATION_ARGUMENT_IDENTIFIER and line_part[2].isalpha()
 
 
 def operation_exists(name: str) -> bool:
+    """ Function: Verify opertion existence """
     for operation in OPERATION_LIST:
         if operation.name == name:
             return True
@@ -83,13 +83,15 @@ def operation_exists(name: str) -> bool:
 
 
 def get_operation(name: str) -> Operation:
+    """ Function: Get defined operation object """
     for operation in OPERATION_LIST:
         if operation.name == name:
             return operation
     return None
 
 
-def convert_csv_to_list(value: str, value_type: type=str, replace_null=str()) -> list:
+def convert_csv_to_list(value: str, value_type: type=str, replace_null: str=str()) -> list:
+    """ Function: Convert CSV to list """
     converted_list = [i.replace(' ', str()) for i in value.split(',')]
 
     for i in range(len(converted_list)):
@@ -102,12 +104,14 @@ def convert_csv_to_list(value: str, value_type: type=str, replace_null=str()) ->
 
 
 def contains_row_for_date(data: list, date: str) -> bool:
+    """ Function: Verify if row with specified date already exist """
     filtered_data = [i for i in data if i[0] == date]
 
     return len(filtered_data) > 0
 
 
 def find_row_by_date(data: list, date: str, use_index: int=-1) -> list:
+    """ Function: Find row with specified date """
     filtered_data = [i for i in data if i[0] == date]
 
     try:
@@ -117,17 +121,20 @@ def find_row_by_date(data: list, date: str, use_index: int=-1) -> list:
 
 
 def is_nan(value) -> bool:
+    """ Function: Check if NaN """
     return value != value
 
 
 def contains_nan(row: list) -> bool:
+    """ Function: Check if contains NaN """
     for i in row:
         if is_nan(i):
             return True
     return False
 
 
-def is_empty(value) -> bool:
+def is_empty(value: any) -> bool:
+    """ Function: Check if empty value """
     try:
         return value == str() or value is None or is_nan(value)
     except TypeError:
@@ -135,10 +142,12 @@ def is_empty(value) -> bool:
 
 
 def copy_list(value: list) -> list:
+    """ Function: Copy list without reference """
     return [i for i in value]
 
 
 def read_style(style_name: str) -> Style:
+    """ Function: Read chart style """
     try:
         exec('from pygal.style import {}'.format(style_name))
         return eval(style_name)

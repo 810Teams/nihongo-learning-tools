@@ -4,9 +4,9 @@
 
 
 class Argument:
-    def __init__(self, name:str, value:type=None):
-        self.name = name
-        self.value = value
+    def __init__(self, name: str, value: type=None):
+        self.name: str = name
+        self.value: type = value
 
     def __str__(self) -> str:
         if self.value is None:

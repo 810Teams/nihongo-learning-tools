@@ -13,12 +13,10 @@ class BackupService:
     def __init__(self, storage_name: str) -> None:
         self.storage_name = storage_name
 
-
     def trigger_backup(self) -> None:
         """ Method: Trigger backup process """
         if ENABLE_BACKUP:
             self.copy()
-
 
     def copy(self) -> None:
         """ Method: Copy data and save elsewhere as backup """
