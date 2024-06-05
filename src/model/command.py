@@ -14,8 +14,8 @@ class Command:
 
     def __str__(self) -> str:
         if self.value is None:
-            return '{}, [{}]'.format(self.name, self.argument_list)
-        return '{}: {}, [{}]'.format(self.name, self.value, self.argument_list)
+            return '{}, {}'.format(self.name, self.argument_list)
+        return '{}: {}, {}'.format(self.name, self.value, self.argument_list)
 
     def get_argument(self, argument_name: str) -> Argument:
         """ Method: Get argument object """

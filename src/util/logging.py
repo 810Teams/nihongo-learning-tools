@@ -3,19 +3,22 @@
 """
 
 
-def error(message: str, end: str='\n', start: str=str()) -> None:
+def error(message: str, end: str='\n', start: str=str(), display: bool=True) -> None:
     """ Display error message """
-    print(start, end=str())
-    print('[ERROR]', message, end=end)
+    if display:
+        print(start, end=str())
+        print('[ERROR]', message, end=end)
 
 
-def log(message: str, end: str='\n', start: str=str()) -> None:
+def log(message: str, end: str='\n', start: str=str(), display: bool=True) -> None:
     """ Display log message """
-    print(start, end=str())
-    print('[LOG]', message, end=end)
+    if display:
+        print(start, end=str())
+        print('[LOG]', message, end=end)
 
 
-def notice(message: str, end: str='\n', start: str=str()) -> None:
+def notice(message: str, end: str='\n', start: str=str(), display: bool=True) -> None:
     """ Display notice message """
-    print(start, end=str())
-    print('[NOTICE]', message, end=end)
+    if display:
+        print(start, end=str())
+        print('[NOTICE]', message, end=end)

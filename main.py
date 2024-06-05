@@ -32,18 +32,20 @@ class ProgressTrackerApplication:
             storage = Storage(DEFAULT_STORAGE)
         else:
             print()
-            notice('Please input the name of the storage')
+            notice('Please input the name of the storage.')
             print()
             storage = Storage(input('(Input) ').strip())
+            print()
 
         # Storage loading
         if storage.try_load():
             notice('Storage \'{}\' already exists, proceeding to storage loading.'.format(storage.name), start='\n')
         else:
             notice('Storage \'{}\' does not exist yet and requires set-up.'.format(storage.name), start='\n')
-            notice('Please input the columns of the storage')
+            notice('Please input the columns of the storage.')
             print()
             columns: list = input('(Input) ').strip().replace(' ', str()).split(',')
+            print()
             storage.setup(columns)
 
         storage.load()

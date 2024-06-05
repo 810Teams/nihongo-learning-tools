@@ -23,11 +23,12 @@ class OperationService:
 
     def execute(self, command: Command) -> None:
         """ Method: Validate and execute command """
+        print()
         if self.find_operation(command) is None:
-            error('Command \'{}\' error.'.format(command.name), start='\n')
+            error('Command \'{}\' error.'.format(command.name))
             error('Please check if the command exists.')
         elif not self.validate_command(command):
-            error('Command \'{}\' error.'.format(command.name), start='\n')
+            error('Command \'{}\' error.'.format(command.name))
             error('Please check value types of the command as well as its arguments.')
         else:
             exec('self.operate_{}(command)'.format(command.name))
@@ -43,35 +44,35 @@ class OperationService:
                 initial = self.storage.to_list()[-1][1:]
                 new_row = [int(initial[i]) + value[i] for i in range(len(initial))]
                 self.storage.append(new_row)
-                notice('Data {} is added to the storage.'.format(new_row), start='\n')
+                notice('Data {} is added to the storage.'.format(new_row))
             except ValueError:
-                error('Invalid value format. Please try again.', start='\n')
+                error('Invalid value format. Please try again.')
 
         elif command.contains_argument(OperationList.Append.ParameterList.custom.name):
             try:
                 custom_id = int(command.get_argument(OperationList.Append.ParameterList.custom.name).value)
                 if custom_id not in (1, 2, 3, 4, 5):
-                    error('Custom ID must be an integer from 1 to 5.', start='\n')
+                    error('Custom ID must be an integer from 1 to 5.')
                     return
             except (IndexError, ValueError):
-                error('Custom ID must be an integer.', start='\n')
+                error('Custom ID must be an integer.')
                 return
 
             try:
                 new_row = custom_append_head(value, custom_id)
                 self.storage.append(new_row)
-                notice('Data {} is added to the storage.'.format(new_row), start='\n')
+                notice('Data {} is added to the storage.'.format(new_row))
             except IndexError:
-                error('Invalid value format. Please try again.', start='\n')
+                error('Invalid value format. Please try again.')
                 error('Function \'custom_append_{}\' might not have been implemented.'.format(custom_id))
 
         else:
             try:
                 new_row = convert_csv_to_list(value, value_type=int, replace_null=0)
                 self.storage.append(new_row)
-                notice('Data {} is added to the storage.'.format(new_row), start='\n')
+                notice('Data {} is added to the storage.'.format(new_row))
             except ValueError:
-                error('Invalid value format. Please try again.', start='\n')
+                error('Invalid value format. Please try again.')
 
     def operate_chart(self, command: Command) -> None:
         """ Method: Operation Code 'C' (Create Charts) """
@@ -81,7 +82,7 @@ class OperationService:
             try:
                 average_range = int(command.get_argument(OperationList.Chart.ParameterList.average_range.name).value)
             except ValueError:
-                error('Average range must be an integer.', start='\n')
+                error('Average range must be an integer.')
                 error('Aborting chart creation process.')
                 return
 
@@ -91,17 +92,17 @@ class OperationService:
             try:
                 days = OperationList.Chart.ParameterList.days.value_type(command.get_argument(OperationList.Chart.ParameterList.days.name).value)
             except ValueError:
-                error('Duration must be an integer.', start='\n')
+                error('Duration must be an {}.'.format(OperationList.Chart.ParameterList.days.value_type))
                 error('Aborting chart creation process.')
                 return
 
         # Step 3: -dots-count argument
         dots_count = DEFAULT_DOTS_COUNT
-        if command.contains_argument('-dots-count'):
+        if command.contains_argument(OperationList.Chart.ParameterList.dots_count.name):
             try:
-                dots_count = int(command.get_argument('-dots-count').value)
+                dots_count = int(command.get_argument(OperationList.Chart.ParameterList.dots_count.name).value)
             except ValueError:
-                error('Maximum dots must be an integer.', start='\n')
+                error('Maximum dots must be an integer.')
                 error('Aborting chart creation process.')
                 return
 
@@ -111,7 +112,7 @@ class OperationService:
             try:
                 max_y_labels = int(command.get_argument(OperationList.Chart.ParameterList.max_y.name).value)
             except ValueError:
-                error('Maximum y labels must be an integer.', start='\n')
+                error('Maximum y labels must be an integer.')
                 error('Aborting chart creation process.')
                 return
 
@@ -141,12 +142,12 @@ class OperationService:
     def operate_reload(self, command: Command) -> None:
         """ Method: Operation Code 'R' (Reload Storage) """
         self.storage.reload()
-        notice('Storage \'{}\' is reloaded from disk.'.format(self.storage.name), start='\n')
+        notice('Storage \'{}\' is reloaded from disk.'.format(self.storage.name))
 
     def operate_save(self, command: Command) -> None:
         """ Method: Operation Code 'S' (Save Storage) """
         self.storage.save()
-        notice('Storage \'{}\' is saved to disk.'.format(self.storage.name), start='\n')
+        notice('Storage \'{}\' is saved to disk.'.format(self.storage.name))
 
     def operate_view(self, command: Command) -> None:
         """ Method: Operation Code 'V' (View Storage) """
@@ -155,7 +156,7 @@ class OperationService:
 
     def operate_exit(self, command: Command) -> None:
         """ Method: Operation Code 'X' (Exit) """
-        notice('Exitting application.', start='\n')
+        notice('Exitting application.')
         exit()
 
     def validate_command(self, command: Command) -> bool:

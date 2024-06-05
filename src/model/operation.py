@@ -5,6 +5,7 @@
 from src.model.argument import Argument
 from src.model.command import Command
 from src.model.parameter import Parameter
+from src.util.logging import error
 from src.util.string import compare_ignore_case
 
 
@@ -19,7 +20,7 @@ class Operation:
         message = '[{}]'.format(self.name)
 
         if self.value_type is not None:
-            message += ' [{}]'.format(self.value_type)
+            message += ' {}'.format(self.value_type)
 
         for i in self.parameter_list:
             message += '\n    {}'.format(i)
@@ -37,23 +38,29 @@ class Operation:
         """ Method: Check if parameter exists """
         return self.get_parameter(parameter_name) is not None
 
-    def validate_command(self, command: Command) -> bool:
+    def validate_command(self, command: Command, display_error: bool=True) -> bool:
         """ Method: Validate command """
         if self.name != command.name:
+            error('Command name mismatches operation name.', display=display_error)
             return False
         if self.value_type is None and command.value is not None:
+            error('Operation {} does not require value.'.format(self.name), display=display_error)
+            return False
+        if self.value_type is not None and command.value is None:
+            error('Operation {} requires value with type {} but none is found.'.format(self.name, self.value_type), display=display_error)
             return False
         if self.value_type is not None and command.value is not None:
             try:
                 self.value_type(command.value)
-            except:
+            except (TypeError, ValueError):
+                error('Value of command {} must be type {}.'.format(command.name, self.value_type), display=display_error)
                 return False
 
         arg: Argument
         for arg in command.argument_list:
             if self.contains_parameter(arg.name):
                 param: Parameter = self.get_parameter(arg.name)
-                if not param.validate_argument(arg):
+                if not param.validate_argument(arg, display_error=True):
                     return False
 
         return True
