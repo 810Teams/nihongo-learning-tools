@@ -8,8 +8,8 @@ from src.core.app_data import STORAGE_BASE_PATH, STORAGE_FILE_EXTENSION
 from src.util.reader import is_empty
 
 import numpy
-import pandas
 import os
+import pandas
 
 
 class Storage:
@@ -21,7 +21,7 @@ class Storage:
         """ User Method: Append data """
         time = str(datetime.now())
         row = pandas.DataFrame([[time[0:len(time)-7]] + new_data], columns=list(self.data.columns))
-        self.data = self.data.add(row)
+        self.data = pandas.concat((self.data, row,))
 
     def load(self) -> None:
         """ Indirect User Method: Load storage """
