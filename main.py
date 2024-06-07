@@ -18,6 +18,15 @@ class ProgressTrackerApplication:
     def __init__(self) -> None:
         self.operation_service: OperationService = None
 
+    def setup(self, folder_path_list: list=[]) -> None:
+        """ Method: Verify required folder paths and set up folders if not exist """
+        folder_path: str
+        for folder_path in folder_path_list:
+            try:
+                os.mkdir(folder_path)
+            except FileExistsError:
+                pass
+
     def run(self) -> None:
         """ Method: Run the application """
         # Title
@@ -52,14 +61,16 @@ class ProgressTrackerApplication:
         notice('Storage \'{}\' is loaded.'.format(storage.name))
 
         # Start
+        self.operation_service = OperationService(storage)
+        self.operation_service.backup_service.validate_backup_path()
+
         print()
         for operation in OPERATION_LIST:
             print(operation)
 
-        self.operation_service = OperationService(storage)
-        self.start()
+        self._start()
 
-    def start(self) -> None:
+    def _start(self) -> None:
         """ Method: Start operating the application """
         while True:
             print()
@@ -68,10 +79,10 @@ class ProgressTrackerApplication:
             if line.strip() == str():
                 continue
 
-            self.display_command_warnings(line)
+            self._display_command_warnings(line)
             self.operation_service.execute(extract_command_and_arguments(line))
 
-    def display_command_warnings(self, line: str) -> None:
+    def _display_command_warnings(self, line: str) -> None:
         """ Method: Display command warnings before the command execution """
         warning_segments: Command = extract_command_and_arguments(line, get_warning=True)
         if len(warning_segments) > 0:
@@ -85,15 +96,6 @@ class ProgressTrackerApplication:
                 notice('Command segment \'{}\' is not recognized by the program.'.format(warning))
         if len(warning_segments) > 0:
             notice('Note that unrecognized command segments will not take effect.', end=str())
-
-    def setup(self, folder_path_list: list=[]) -> None:
-        """ Method: Verify required folder paths and set up folders if not exist """
-        folder_path: str
-        for folder_path in folder_path_list:
-            try:
-                os.mkdir(folder_path)
-            except FileExistsError:
-                pass
 
 
 def main() -> None:

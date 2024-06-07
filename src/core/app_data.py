@@ -24,12 +24,12 @@ class OperationList:
         class ParameterList:
             custom: Parameter = Parameter('-custom', value_type=int, description='Custom written method')
             add: Parameter = Parameter('--add', description='Add mode')
-        
+
         operation = Operation = Operation('append', value_type=str, description='Append Data', parameter_list=[
             ParameterList.custom,
             ParameterList.add
         ])
-    
+
     class Chart:
         class ParameterList:
             average_range: Parameter = Parameter('-average-range', value_type=int, description='Average range (Default: {})'.format(DEFAULT_AVERAGE_RANGE))
@@ -44,38 +44,44 @@ class OperationList:
 
         operation: Operation = Operation('chart', description='Create Charts', parameter_list=[
             ParameterList.average_range,
-            ParameterList.days, 
-            ParameterList.dots_count, 
+            ParameterList.days,
+            ParameterList.dots_count,
             ParameterList.max_y,
-            ParameterList.style, 
+            ParameterList.style,
             ParameterList.x_label,
             ParameterList.allow_float,
             ParameterList.dynamic,
             ParameterList.today,
         ])
-        
+
     class Reload:
         class ParameterList:
             pass
 
         operation: Operation = Operation('reload', description='Reload Storage', parameter_list=[])
-    
+
     class Save:
         class ParameterList:
             pass
 
         operation: Operation = Operation('save', description='Save Storage', parameter_list=[])
-    
+
+    class Sync:
+        class ParameterList:
+            pass
+
+        operation: Operation = Operation('sync', description='Load Storage Backup', parameter_list=[])
+
     class View:
         class ParameterList:
             pass
 
         operation: Operation = Operation('view', description='View Storage', parameter_list=[])
-    
+
     class Exit:
         class ParameterList:
             pass
-        
+
         operation: Operation = Operation('exit', description='Exit Application', parameter_list=[])
 
 
@@ -84,6 +90,7 @@ OPERATION_LIST = [
     OperationList.Chart.operation,
     OperationList.Reload.operation,
     OperationList.Save.operation,
+    OperationList.Sync.operation,
     OperationList.View.operation,
     OperationList.Exit.operation,
 ]

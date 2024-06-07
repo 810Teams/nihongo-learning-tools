@@ -25,4 +25,12 @@ SHRINK_FACTOR = 2.5
 # Backup Settings
 
 ENABLE_BACKUP = True
-BACKUP_PATH = 'C:/Users/teera/iCloudDrive/Documents/Dataset Backups/'
+BACKUP_PATH_LIST = [
+    'C:/Users/teera/iCloudDrive/Documents/Dataset Backups/',
+    '/Users/teerapat/Library/Mobile Documents/com~apple~CloudDocs/Documents/Backups/Dataset Backups/',
+]
+BACKUP_TO_ONLY_FIRST_PATH = False
+LOAD_BACKUP_PATH_LIST = [
+    'C:/Users/teera/iCloudDrive/Documents/Dataset Backups/',
+    '/Users/teerapat/Library/Mobile Documents/com~apple~CloudDocs/Documents/Backups/Dataset Backups/',
+]
