@@ -12,4 +12,3 @@ class Argument:
         if self.value is None:
             return '{}'.format(self.name)
         return '{}: {}'.format(self.name, self.value)
-        
