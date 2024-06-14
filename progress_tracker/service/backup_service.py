@@ -1,15 +1,16 @@
 """
-    `src/service/backup_service.py`
+    `progress_tracker/service/backup_service.py`
 """
-
-from datetime import date
-from settings import ENABLE_BACKUP, BACKUP_PATH_LIST, BACKUP_TO_ONLY_FIRST_PATH, LOAD_BACKUP_PATH_LIST
-from src.core.app_data import STORAGE_BASE_PATH, STORAGE_FILE_EXTENSION
-from src.model.storage import Storage
-from src.util.logging import error, notice
 
 import os
 import shutil
+
+from datetime import date
+
+from core.util.logging import error, notice
+from progress_tracker.constant.app_data import STORAGE_BASE_PATH,STORAGE_FILE_EXTENSION
+from progress_tracker.model.storage import Storage
+from progress_tracker.settings import BACKUP_PATH_LIST, BACKUP_TO_ONLY_FIRST_PATH, ENABLE_BACKUP, LOAD_BACKUP_PATH_LIST
 
 
 class BackupService:

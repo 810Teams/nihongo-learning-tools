@@ -1,9 +1,9 @@
 """
-    `src/model/parameter.py`
+    `core/model/parameter.py`
 """
 
-from src.model.argument import Argument
-from src.util.logging import error
+from core.model.argument import Argument
+from core.util.logging import error
 
 
 class Parameter:

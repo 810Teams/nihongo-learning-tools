@@ -1,39 +1,30 @@
 """
-    `src/service/operation_service.py`
+    `progress_tracker/service/operation_service.py`
 """
 
-from custom.append import custom_append_head
-from src.core.app_data import OperationList
-from src.service.backup_service import BackupService
-from src.model.operation import Operation
-from src.core.app_data import OPERATION_LIST
-from src.model.command import Command
-from src.model.parameter import Parameter
-from src.model.storage import Storage
-from src.service.render_service import RenderService
-from src.util.logging import error, notice
-from src.util.reader import convert_csv_to_list
-from settings import DEFAULT_AVERAGE_RANGE, DEFAULT_DAYS, DEFAULT_DOTS_COUNT, DEFAULT_MAX_Y_LABELS, DEFAULT_STYLE, DEFAULT_X_LABEL
+from core.base.operation_service_base import OperationServiceBase
+from core.model.command import Command
+from core.util.logging import error, notice
+from core.util.reader import convert_csv_to_list
+from progress_tracker.constant.app_data import OPERATION_LIST, OperationList
+from progress_tracker.custom.append import custom_append_head
+from progress_tracker.model.storage import Storage
+from progress_tracker.service.backup_service import BackupService
+from progress_tracker.service.render_service import RenderService
+from progress_tracker.settings import *
 
 
-class OperationService:
-    def __init__(self, storage: Storage) -> None:
+class OperationService(OperationServiceBase):
+    def __init__(self, storage: Storage):
+        super().__init__(OPERATION_LIST)
         self.storage: Storage = storage
         self.render_service: RenderService = RenderService(storage)
         self.backup_service: BackupService = BackupService(storage)
 
-    def execute(self, command: Command) -> None:
+    def execute(self, line: str) -> None:
         """ Method: Validate and execute command """
-        print()
-        if self._find_operation(command) is None:
-            error('Command \'{}\' error.'.format(command.name))
-            error('Please check if the command exists.')
-        elif not self._validate_command(command):
-            error('Command \'{}\' error.'.format(command.name))
-            error('Please check value types of the command as well as its arguments.')
-        else:
-            exec('self._operate_{}(command)'.format(command.name))
-            self.backup_service.backup()
+        super().execute(line)
+        self.backup_service.backup()
 
     def _operate_append(self, command: Command) -> None:
         """ Method: Operation Code 'A' (Add Data) """
@@ -81,14 +72,14 @@ class OperationService:
 
         self.render_service.render_all(
             allow_float=command.contains_argument(parameter_list.allow_float.name),
-            average_range=self._get_argument_variable(command, parameter_list.average_range, DEFAULT_AVERAGE_RANGE),
-            days=self._get_argument_variable(command, parameter_list.days, DEFAULT_DAYS),
+            average_range=super()._get_argument_value(command, parameter_list.average_range, DEFAULT_AVERAGE_RANGE),
+            days=super()._get_argument_value(command, parameter_list.days, DEFAULT_DAYS),
             is_dynamic=command.contains_argument(parameter_list.dynamic.name),
             is_today=command.contains_argument(parameter_list.today.name),
-            dots_count=self._get_argument_variable(command, parameter_list.dots_count, DEFAULT_DOTS_COUNT),
-            max_y_labels=self._get_argument_variable(command, parameter_list.max_y, DEFAULT_MAX_Y_LABELS),
-            style=self._get_argument_variable(command, parameter_list.style, DEFAULT_STYLE),
-            x_label=self._get_argument_variable(command, parameter_list.x_label, DEFAULT_X_LABEL)
+            dots_count=super()._get_argument_value(command, parameter_list.dots_count, DEFAULT_DOTS_COUNT),
+            max_y_labels=super()._get_argument_value(command, parameter_list.max_y, DEFAULT_MAX_Y_LABELS),
+            style=super()._get_argument_value(command, parameter_list.style, DEFAULT_STYLE),
+            x_label=super()._get_argument_value(command, parameter_list.x_label, DEFAULT_X_LABEL)
         )
 
     def _operate_reload(self, command: Command) -> None:
@@ -114,26 +105,3 @@ class OperationService:
         """ Method: Operation Code 'X' (Exit) """
         notice('Exitting application.')
         exit()
-
-    def _validate_command(self, command: Command) -> bool:
-        """ Method: Validate command """
-        operation: Operation = self._find_operation(command)
-
-        if operation is None:
-            return False
-
-        return operation.validate_command(command)
-
-    def _find_operation(self, command: Command) -> Operation:
-        """ Method: Find operation """
-        operation: Operation
-        for operation in OPERATION_LIST:
-            if command.name == operation.name:
-                return operation
-        return None
-
-    def _get_argument_variable(self, command: Command, parameter: Parameter, default_value: any) -> any:
-        """ Method: Decide argument value based on argument in command and default value """
-        if command.contains_argument(parameter.name):
-            return parameter.value_type(command.get_argument(parameter.name).value)
-        return default_value

@@ -1,12 +1,12 @@
 """
-    `src/model/operation.py`
+    `core/model/operation.py`
 """
 
-from src.model.argument import Argument
-from src.model.command import Command
-from src.model.parameter import Parameter
-from src.util.logging import error
-from src.util.string import compare_ignore_case
+from core.model.argument import Argument
+from core.model.command import Command
+from core.model.parameter import Parameter
+from core.util.logging import error
+from core.util.string import compare_ignore_case
 
 
 class Operation:

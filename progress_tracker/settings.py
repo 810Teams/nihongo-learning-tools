@@ -1,12 +1,14 @@
 """
-    `settings.py`
+    `progress-tracker/settings.py`
 """
 
+# Style Settings
+
+DEFAULT_STYLE = 'DarkStyle'
 
 # Storage Settings
 
 DEFAULT_STORAGE = 'kanji'
-
 
 # Style Settings
 
@@ -20,7 +22,6 @@ DEFAULT_X_LABEL = 'date'
 BASE_DOTS_SIZE = 2.25
 MAX_DOTS_SIZE_RETAIN = 45
 SHRINK_FACTOR = 2.5
-
 
 # Backup Settings
 

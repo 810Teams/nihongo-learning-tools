@@ -107,7 +107,6 @@ venv.bak/
 .DS_Store
 
 # Application Customs
-charts/
 data/
-DEFAULT_STORAGE.txt
-DEFAULT_STYLE.txt
+export/
+*.svg

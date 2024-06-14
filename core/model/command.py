@@ -1,9 +1,9 @@
 """
-    `src/model/command.py`
+    `core/model/command.py`
 """
 
-from src.model.argument import Argument
-from src.util.string import compare_ignore_case
+from core.model.argument import Argument
+from core.util.string import compare_ignore_case
 
 
 class Command:

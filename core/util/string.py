@@ -1,5 +1,5 @@
 """
-    `src/util/string.py`
+    `core/util/string.py`
 """
 
 

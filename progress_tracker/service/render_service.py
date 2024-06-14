@@ -1,20 +1,21 @@
 """
-    `src/service/render_service.py`
+    `progress_tracker/service/render_service.py`
 """
 
 from datetime import datetime
 from math import ceil, floor
 from time import perf_counter
 
-from src.model.storage import Storage
-from src.util.logging import error, notice
-from src.util.calculation import average, add_day_to_date, compare_date
-from src.util.reader import contains_row_for_date, copy_list, is_empty, read_style
-from src.util.transform import transpose
-from src.util.validation import is_valid_style
-from settings import *
-
 import pygal
+
+from core.util.calculation import add_day_to_date, average, compare_date
+from core.util.logging import error, notice
+from core.util.reader import contains_row_for_date, copy_list, is_empty, read_style
+from core.util.validation import is_valid_style
+from progress_tracker.constant.app_data import CHART_BASE_PATH
+from progress_tracker.model.storage import Storage
+from progress_tracker.settings import *
+from progress_tracker.util.transform import transpose
 
 
 class RenderService():
@@ -247,7 +248,7 @@ class RenderService():
 
         # Chart Render
         chart.style = read_style(style)
-        chart.render_to_file('charts/{}_total.svg'.format(self.storage.name.lower()))
+        chart.render_to_file('{}{}_total.svg'.format(CHART_BASE_PATH, self.storage.name.lower()))
 
         # Notice
         notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()))
@@ -403,7 +404,7 @@ class RenderService():
             file_name += '_stacked'
         if 'average' in chart_type:
             file_name = file_name.replace('_development', '_average_development')
-        chart.render_to_file('charts/' + file_name + '.svg')
+        chart.render_to_file(CHART_BASE_PATH + file_name + '.svg')
 
         # Notice
         notice('Chart \'{}\' successfully exported.'.format(file_name))

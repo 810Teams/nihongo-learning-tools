@@ -1,5 +1,5 @@
 """
-    `src/model/argument.py`
+    `core/model/argument.py`
 """
 
 
