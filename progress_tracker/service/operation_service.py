@@ -2,8 +2,6 @@
     `progress_tracker/service/operation_service.py`
 """
 
-import os
-
 from core.base.operation_service_base import OperationServiceBase
 from core.model.command import Command
 from core.util.caching import clear_cache
@@ -11,7 +9,7 @@ from core.util.format import path
 from core.util.logging import error, notice
 from core.util.opener import open_file
 from core.util.reader import convert_csv_to_list
-from progress_tracker.constant.app_data import OPERATION_LIST, CHART_BASE_PATH, CHART_FILE_EXTENSION, OperationList
+from progress_tracker.constant.app_data import OPERATION_LIST, CHART_BASE_PATH, OperationList
 from progress_tracker.custom.append import custom_append_head
 from progress_tracker.model.storage import Storage
 from progress_tracker.service.backup_service import BackupService
