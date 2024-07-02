@@ -2,6 +2,8 @@
     `base/service/operation_service_base.py`
 """
 
+import os
+
 from core.constant.identifier import MODIFICATION_ARGUMENT_IDENTIFIER, VALUE_PARSING_ARGUMENT_IDENTIFIER
 from core.model.argument import Argument
 from core.model.command import Command
@@ -13,6 +15,20 @@ from core.util.logging import error, notice
 class OperationServiceBase:
     def __init__(self, operation_list: list=[]):
         self.operation_list: list[Operation] = operation_list
+
+    def display_operation_list(self) -> None:
+        """ Method: Display operation list """
+        title: str = '|  Operation List  |'
+        top_frame: str = '┌' + (len(title) - 2) * '-' + '┐'
+        bottom_frame: str = '└' + (len(title) - 2) * '-' + '┘'
+
+        print(top_frame)
+        print(title)
+        print(bottom_frame)
+
+        print()
+        for operation in self.operation_list:
+            print(operation)
 
     def execute(self, line: str) -> None:
         """ Method: Validate and execute command """
@@ -29,19 +45,26 @@ class OperationServiceBase:
         else:
             exec('self._operate_{}(command)'.format(command.name))
 
-    def display_operation_list(self) -> None:
-        """ Method: Display operation list """
-        title: str = '|  Operation List  |'
-        top_frame: str = '┌' + (len(title) - 2) * '-' + '┐'
-        bottom_frame: str = '└' + (len(title) - 2) * '-' + '┘'
+    def _operate_help(self, command: Command) -> None:
+        """ Operation: Display operation list """
+        self.display_operation_list()
 
-        print(top_frame)
-        print(title)
-        print(bottom_frame)
-
+    def _operate_exit(self, command: Command) -> None:
+        """ Operation: Exit """
+        notice('Exitting application.')
         print()
-        for operation in self.operation_list:
-            print(operation)
+        os.system('pyclean .')
+        print()
+        exit()
+
+    def _open_file(self, path: str, display_error: bool=True):
+        """ Function: Open file on system in a supported application """
+        try:
+            os.system('open {}'.format(path))
+        except FileNotFoundError:
+            error('File not found error, please try again.', display=display_error)
+        except (OSError, PermissionError):
+            error('Something unexpected happened, please try again.', display=display_error)
 
     def _extract_command_and_arguments(self, line: str, get_warning: bool=False) -> Command:
         """ Method: Convert a line of string to command object """

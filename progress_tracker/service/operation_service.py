@@ -4,10 +4,8 @@
 
 from core.base.operation_service_base import OperationServiceBase
 from core.model.command import Command
-from core.util.caching import clear_cache
 from core.util.format import path
 from core.util.logging import error, notice
-from core.util.opener import open_file
 from core.util.reader import convert_csv_to_list
 from progress_tracker.constant.app_data import OPERATION_LIST, CHART_BASE_PATH, OperationList
 from progress_tracker.custom.append import custom_append_head
@@ -86,16 +84,12 @@ class OperationService(OperationServiceBase):
 
         if command.contains_argument(parameter_list.open.name):
             notice('Opening chart files.')
-            open_file(path(CHART_BASE_PATH, '*'))
-
-    def _operate_help(self, command: Command) -> None:
-        """ Method: Display Commands """
-        super().display_operation_list()
+            self._open_file(path(CHART_BASE_PATH, '*'))
 
     def _operate_open(self, command: Command) -> None:
         """ Method: Open storage file """
         notice('Opening storage file.')
-        open_file(self.storage.get_path())
+        super()._open_file(self.storage.get_path())
 
     def _operate_reload(self, command: Command) -> None:
         """ Method: Reload Storage """
@@ -116,10 +110,3 @@ class OperationService(OperationServiceBase):
     def _operate_view(self, command: Command) -> None:
         """ Method: View Storage """
         print(self.storage.data)
-
-    def _operate_exit(self, command: Command) -> None:
-        """ Method: Exit """
-        notice('Exitting application.')
-        clear_cache()
-        print()
-        exit()
