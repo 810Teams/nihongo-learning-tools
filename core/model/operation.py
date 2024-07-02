@@ -10,11 +10,11 @@ from core.util.string import compare_ignore_case
 
 
 class Operation:
-    def __init__(self, name: str, value_type: type=None, description: str=str(), parameter_list: list=list()):
+    def __init__(self, name: str, value_type: type=None, description: str=str(), parameter_list: list[Parameter]=list()):
         self.name: str = name
         self.value_type: type = value_type
         self.description: str = description
-        self.parameter_list: list = parameter_list
+        self.parameter_list: list[Parameter] = parameter_list
 
     def __str__(self) -> str:
         message = '[{}]'.format(self.name)

@@ -7,8 +7,10 @@ import numpy
 import pandas
 
 from datetime import datetime
+from io import TextIOWrapper
 from pandas import DataFrame
 
+from core.util.format import path
 from core.util.reader import is_empty
 from progress_tracker.constant.app_data import STORAGE_BASE_PATH, STORAGE_FILE_EXTENSION
 
@@ -21,13 +23,13 @@ class Storage:
     def append(self, new_data) -> None:
         """ User Method: Append data """
         time = str(datetime.now())
-        row = pandas.DataFrame([[time[0:len(time)-7]] + new_data], columns=list(self.data.columns))
+        row = pandas.DataFrame([[time[0:len(time) - 7]] + new_data], columns=list(self.data.columns))
         self.data = pandas.concat((self.data, row,))
 
     def load(self) -> None:
         """ Indirect User Method: Load storage """
-        columns = pandas.read_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION).columns[1:]
-        temp_data = pandas.read_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION, dtype=dict([(col, 'string_') for col in columns]))
+        columns = pandas.read_csv(self.get_path()).columns[1:]
+        temp_data = pandas.read_csv(self.get_path(), dtype=dict([(col, 'string_') for col in columns]))
 
         dtype_data = dict()
 
@@ -41,7 +43,7 @@ class Storage:
                         dtype_data[col] = 'float64'
                         break
 
-        self.data = pandas.read_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION, dtype=dtype_data)
+        self.data = pandas.read_csv(self.get_path(), dtype=dtype_data)
 
     def reload(self) -> None:
         """ Indirect User Method: Reload storage """
@@ -54,13 +56,13 @@ class Storage:
         except FileNotFoundError:
             pass
 
-        self.data.to_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION, index=None, header=True)
+        self.data.to_csv(self.get_path(), index=None, header=True)
         self.reload()
 
     def setup(self, columns: list) -> pandas.DataFrame:
         """ System Method: View storage """
-        self.data = pandas.DataFrame([], columns=['timestamp'] + columns)
-        f = open('{}'.format(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION), 'w')
+        self.data: pandas.DataFrame = pandas.DataFrame([], columns=['timestamp'] + columns)
+        f: TextIOWrapper = open('{}'.format(self.get_path()), 'w')
         f.write('timestamp,{}'.format(','.join(columns)))
         f.close()
 
@@ -68,7 +70,7 @@ class Storage:
         """ System Method: Try loading a storage """
         try:
             if self.data == None:
-                pandas.read_csv(STORAGE_BASE_PATH + self.name + STORAGE_FILE_EXTENSION)
+                pandas.read_csv(self.get_path())
             return True
         except FileNotFoundError:
             return False
@@ -80,3 +82,7 @@ class Storage:
     def get_columns(self) -> list:
         """ System Method: Returns a list of columns """
         return self.data.columns[1:]
+
+    def get_path(self) -> str:
+        """ System Method: Return storage full path """
+        return path(STORAGE_BASE_PATH, self.name + STORAGE_FILE_EXTENSION)

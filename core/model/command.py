@@ -7,10 +7,10 @@ from core.util.string import compare_ignore_case
 
 
 class Command:
-    def __init__(self, name: str, value: any=None, argument_list: list=list()):
+    def __init__(self, name: str, value: any=None, argument_list: list[Argument]=list()):
         self.name: str = name
         self.value: any = value
-        self.argument_list: list = argument_list
+        self.argument_list: list[Argument] = argument_list
 
     def __str__(self) -> str:
         if self.value is None:

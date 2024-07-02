@@ -2,11 +2,16 @@
     `progress_tracker/service/operation_service.py`
 """
 
+import os
+
 from core.base.operation_service_base import OperationServiceBase
 from core.model.command import Command
+from core.util.caching import clear_cache
+from core.util.format import path
 from core.util.logging import error, notice
+from core.util.opener import open_file
 from core.util.reader import convert_csv_to_list
-from progress_tracker.constant.app_data import OPERATION_LIST, OperationList
+from progress_tracker.constant.app_data import OPERATION_LIST, CHART_BASE_PATH, CHART_FILE_EXTENSION, OperationList
 from progress_tracker.custom.append import custom_append_head
 from progress_tracker.model.storage import Storage
 from progress_tracker.service.backup_service import BackupService
@@ -24,10 +29,9 @@ class OperationService(OperationServiceBase):
     def execute(self, line: str) -> None:
         """ Method: Validate and execute command """
         super().execute(line)
-        self.backup_service.backup()
 
     def _operate_append(self, command: Command) -> None:
-        """ Method: Operation Code 'A' (Add Data) """
+        """ Method: Add Data """
         value = command.value
 
         if command.contains_argument(OperationList.Append.ParameterList.add.name):
@@ -67,7 +71,7 @@ class OperationService(OperationServiceBase):
                 error('Invalid value format. Please try again.')
 
     def _operate_chart(self, command: Command) -> None:
-        """ Method: Operation Code 'C' (Create Charts) """
+        """ Method: Create Charts """
         parameter_list = OperationList.Chart.ParameterList
 
         self.render_service.render_all(
@@ -82,26 +86,42 @@ class OperationService(OperationServiceBase):
             x_label=super()._get_argument_value(command, parameter_list.x_label, DEFAULT_X_LABEL)
         )
 
+        if command.contains_argument(parameter_list.open.name):
+            notice('Opening chart files.')
+            open_file(path(CHART_BASE_PATH, '*'))
+
+    def _operate_help(self, command: Command) -> None:
+        """ Method: Display Commands """
+        super().display_operation_list()
+
+    def _operate_open(self, command: Command) -> None:
+        """ Method: Open storage file """
+        notice('Opening storage file.')
+        open_file(self.storage.get_path())
+
     def _operate_reload(self, command: Command) -> None:
-        """ Method: Operation Code 'R' (Reload Storage) """
+        """ Method: Reload Storage """
         self.storage.reload()
         notice('Storage \'{}\' is reloaded from disk.'.format(self.storage.name))
 
     def _operate_save(self, command: Command) -> None:
-        """ Method: Operation Code 'S' (Save Storage) """
+        """ Method: Save Storage """
         self.storage.save()
         notice('Storage \'{}\' is saved to disk.'.format(self.storage.name))
+        self.backup_service.backup()
+        notice('Storage \'{}\' is automatically backed up to the designated path.'.format(self.storage.name))
 
     def _operate_sync(self, command: Command) -> None:
-        """ Method: Operation Code 'S' (Sync) """
+        """ Method: Load Backup Storage File """
         self.backup_service.load_backup()
 
     def _operate_view(self, command: Command) -> None:
-        """ Method: Operation Code 'V' (View Storage) """
-        print()
+        """ Method: View Storage """
         print(self.storage.data)
 
     def _operate_exit(self, command: Command) -> None:
-        """ Method: Operation Code 'X' (Exit) """
+        """ Method: Exit """
         notice('Exitting application.')
+        clear_cache()
+        print()
         exit()

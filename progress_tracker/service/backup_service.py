@@ -15,7 +15,7 @@ from progress_tracker.settings import BACKUP_PATH_LIST, BACKUP_TO_ONLY_FIRST_PAT
 
 class BackupService:
     def __init__(self, storage: Storage) -> None:
-        self.storage = storage
+        self.storage: Storage = storage
 
     def backup(self) -> None:
         """ Method: Copy storage file and save at designated path as backup """
@@ -115,6 +115,6 @@ class BackupService:
     def _process_path(self, path: str) -> str:
         return path.rstrip('/').rstrip('\\')
 
-    def _list_path(self, path_list: list) -> None:
+    def _list_path(self, path_list: list[str]) -> None:
         for path in path_list:
             print('    - {}'.format(self._process_path(path)))

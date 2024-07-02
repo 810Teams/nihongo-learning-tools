@@ -2,29 +2,35 @@
     `progress_tracker/service/render_service.py`
 """
 
+import pygal
+
 from datetime import datetime
 from math import ceil, floor
 from time import perf_counter
 
-import pygal
-
-from core.util.calculation import add_day_to_date, average, compare_date
+from core.base.render_service_base import RenderServiceBase
+from core.util.format import path
+from core.util.statistics import average
 from core.util.logging import error, notice
-from core.util.reader import contains_row_for_date, copy_list, is_empty, read_style
+from core.util.reader import contains_row_for_date, copy_list, is_empty
 from core.util.validation import is_valid_style
-from progress_tracker.constant.app_data import CHART_BASE_PATH
+from progress_tracker.constant.app_data import CHART_BASE_PATH, CHART_FILE_EXTENSION
 from progress_tracker.model.storage import Storage
 from progress_tracker.settings import *
+from progress_tracker.util.calculation import add_day_to_date, compare_date
 from progress_tracker.util.transform import transpose
 
 
-class RenderService():
-    def __init__(self, storage: Storage) -> None:
+class RenderService(RenderServiceBase):
+    def __init__(self, storage: Storage):
         self.storage: Storage = storage
         self.CHART_TYPE_LIST: list = [
-            'total default', 'total stacked',
-            'rate default', 'rate stacked',
-            'rate default average', 'rate stacked average'
+            'total default',
+            'total stacked',
+            'rate default',
+            'rate stacked',
+            'rate default average',
+            'rate stacked average'
         ]
 
     def render_all(
@@ -81,7 +87,7 @@ class RenderService():
 
         notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
-    def _clean(self, data: list) -> list:
+    def _clean(self, data: list[list]) -> list:
         """ Method: Clean Data """
         # Step 1 - Sort
         data.sort(key=lambda i: i[0])
@@ -95,7 +101,7 @@ class RenderService():
         # Step 4 - Return
         return data
 
-    def _fill_missing_data(self, data: list, is_dynamic: bool=False, is_today: bool=False) -> list:
+    def _fill_missing_data(self, data: list[list], is_dynamic: bool=False, is_today: bool=False) -> list:
         """ Method: Fill missing data """
         # Step 1: Prepare data
         data_new = copy_list(data)
@@ -127,7 +133,7 @@ class RenderService():
         # Step 5: Return
         return data_new
 
-    def _fill_missing_data_in_column(self, data: list, is_dynamic: bool=False) -> list:
+    def _fill_missing_data_in_column(self, data: list[list], is_dynamic: bool=False) -> list:
         # Step 1: Determine missing indexes, store in groups
         missing_index_list = [list()]
 
@@ -159,7 +165,7 @@ class RenderService():
         # Step 3: Return
         return filled_data
 
-    def _today_fill(self, data: list) -> list:
+    def _today_fill(self, data: list[list]) -> list:
         """ Method: Fill date until today """
         data_copy = [i for i in data]
         today = str(datetime.now().date())
@@ -174,7 +180,7 @@ class RenderService():
 
     def _validate_arguments_pre_slice(
         self,
-        data: list,
+        data: list[list],
         days: int=DEFAULT_DAYS,
         max_y_labels: int=DEFAULT_MAX_Y_LABELS,
         style: str=DEFAULT_STYLE,
@@ -203,11 +209,11 @@ class RenderService():
 
         return True
 
-    def _slice_data(self, data: list, days: int=DEFAULT_DAYS) -> list:
+    def _slice_data(self, data: list[list], days: int=DEFAULT_DAYS) -> list:
         """ Method: Slice data based on days count """
         return data[-1 * days:]
 
-    def _validate_arguments_post_slice(self, data: list, average_range: int=DEFAULT_AVERAGE_RANGE, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
+    def _validate_arguments_post_slice(self, data: list[list], average_range: int=DEFAULT_AVERAGE_RANGE, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
         """ Method: Validates arguments which depends on the length of sliced data """
         # -average argument
         if average_range != None and not (1 <= average_range <= len(data) - 1):
@@ -221,7 +227,7 @@ class RenderService():
 
         return True
 
-    def _render_chart_total(self, data: list, max_y_labels: int=DEFAULT_MAX_Y_LABELS, style: str=DEFAULT_STYLE, allow_float: bool=False) -> None:
+    def _render_chart_total(self, data: list[list], max_y_labels: int=DEFAULT_MAX_Y_LABELS, style: str=DEFAULT_STYLE, allow_float: bool=False) -> None:
         """ Method: Total Analysis """
         chart = pygal.Bar()
 
@@ -247,15 +253,15 @@ class RenderService():
         chart.legend_box_size = 16
 
         # Chart Render
-        chart.style = read_style(style)
-        chart.render_to_file('{}{}_total.svg'.format(CHART_BASE_PATH, self.storage.name.lower()))
+        chart.style = self._get_style(style)
+        chart.render_to_file(path(CHART_BASE_PATH, self.storage.name.lower() + '_total' + CHART_FILE_EXTENSION))
 
         # Notice
-        notice('Chart \'{}_total\' successfully exported.'.format(self.storage.name.lower()))
+        self._notice_chart_export(self.storage.name.lower() + '_total')
 
     def _render_chart_development(
         self,
-        data: list,
+        data: list[list],
         chart_type: str='total default',
         average_range: int=DEFAULT_AVERAGE_RANGE,
         dots_count: int=DEFAULT_DOTS_COUNT,
@@ -383,7 +389,7 @@ class RenderService():
         chart.legend_box_size = 16
 
         # Chart Style
-        chart.style = read_style(style)
+        chart.style = super()._get_style(style)
         if 'default' in chart_type:
             chart.fill = False
             chart.stroke_style = {
@@ -404,10 +410,10 @@ class RenderService():
             file_name += '_stacked'
         if 'average' in chart_type:
             file_name = file_name.replace('_development', '_average_development')
-        chart.render_to_file(CHART_BASE_PATH + file_name + '.svg')
+        chart.render_to_file(path(CHART_BASE_PATH, file_name + CHART_FILE_EXTENSION))
 
         # Notice
-        notice('Chart \'{}\' successfully exported.'.format(file_name))
+        self._notice_chart_export(file_name)
 
     def _calculate_y_labels(self, data_min: float, data_max: float, max_y_labels: int=DEFAULT_MAX_Y_LABELS, allow_float: bool=False) -> list:
         """ Method: Calculate y-labels """
@@ -434,11 +440,11 @@ class RenderService():
 
         return data_range
 
-    def _get_dot_data_list(self, data: list, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> list:
+    def _get_dot_data_list(self, data: list[list], dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> list:
         """ Method: Get a list of dot node data based on data and dots count """
         return [self._get_dot_data(data, i, dots_count=dots_count, force_visible=force_visible, visible_at_zero=visible_at_zero) for i in range(len(data))]
 
-    def _get_dot_data(self, data: list, index: int, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> dict:
+    def _get_dot_data(self, data: list[list], index: int, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> dict:
         """ Method: Get dot node data for adding into chart based on actual data, index, and dots count """
         if force_visible:
             dot_visibility = True

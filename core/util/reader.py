@@ -2,8 +2,6 @@
     `core/util/reader.py`
 """
 
-from pygal.style import DefaultStyle, Style
-
 
 def convert_csv_to_list(value: str, value_type: type=str, replace_null: str=str()) -> list:
     """ Function: Convert CSV to list """
@@ -59,12 +57,3 @@ def is_empty(value: any) -> bool:
 def copy_list(value: list) -> list:
     """ Function: Copy list without reference """
     return [i for i in value]
-
-
-def read_style(style_name: str) -> Style:
-    """ Function: Read chart style """
-    try:
-        exec('from pygal.style import {}'.format(style_name))
-        return eval(style_name)
-    except (NameError, SyntaxError, ImportError):
-        return DefaultStyle

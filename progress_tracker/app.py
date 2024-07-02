@@ -14,7 +14,7 @@ from progress_tracker.settings import DEFAULT_STORAGE
 
 class ProgressTrackerApplication(ApplicationBase):
     def __init__(self):
-        self.operation_service: OperationService = None
+        super().__init__()
 
     def setup(self) -> None:
         """ Method: Verify required folder paths and set up folders if not exist """
@@ -23,7 +23,7 @@ class ProgressTrackerApplication(ApplicationBase):
     def run(self) -> None:
         """ Method: Run the application """
         # Title
-        super().display_app_title(APP_NAME, AUTHOR, VERSION)
+        super()._display_app_title(APP_NAME, AUTHOR, VERSION)
 
         # Storage naming
         if len(sys.argv) > 1:
@@ -54,9 +54,4 @@ class ProgressTrackerApplication(ApplicationBase):
         # Start
         self.operation_service = OperationService(storage)
         self.operation_service.backup_service.validate_backup_path()
-
-        print()
-        for operation in OPERATION_LIST:
-            print(operation)
-
         super()._start()

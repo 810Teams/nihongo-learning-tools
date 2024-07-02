@@ -12,7 +12,7 @@ from core.util.logging import error, notice
 
 class OperationServiceBase:
     def __init__(self, operation_list: list=[]):
-        self.operation_list: list = operation_list
+        self.operation_list: list[Operation] = operation_list
 
     def execute(self, line: str) -> None:
         """ Method: Validate and execute command """
@@ -28,6 +28,20 @@ class OperationServiceBase:
             error('Please check value types of the command as well as its arguments.')
         else:
             exec('self._operate_{}(command)'.format(command.name))
+
+    def display_operation_list(self) -> None:
+        """ Method: Display operation list """
+        title: str = '|  Operation List  |'
+        top_frame: str = '┌' + (len(title) - 2) * '-' + '┐'
+        bottom_frame: str = '└' + (len(title) - 2) * '-' + '┘'
+
+        print(top_frame)
+        print(title)
+        print(bottom_frame)
+
+        print()
+        for operation in self.operation_list:
+            print(operation)
 
     def _extract_command_and_arguments(self, line: str, get_warning: bool=False) -> Command:
         """ Method: Convert a line of string to command object """
@@ -100,7 +114,7 @@ class OperationServiceBase:
                 notice('Command segment \'{}\' is not recognized by the program.'.format(warning))
         notice('Note that unrecognized command segments will not take effect.', end=str())
 
-    def _find_operation(self, command: Command, operation_list: list) -> Operation:
+    def _find_operation(self, command: Command, operation_list: list[Operation]) -> Operation:
         """ Method: Get defined operation object """
         operation: Operation
         for operation in operation_list:
@@ -108,7 +122,7 @@ class OperationServiceBase:
                 return operation
         return None
 
-    def _operation_exists(self, command: Command, operation_list: list) -> bool:
+    def _operation_exists(self, command: Command, operation_list: list[Operation]) -> bool:
         """ Method: Verify opertion existence """
         return self._find_operation(command, operation_list) is not None
 
