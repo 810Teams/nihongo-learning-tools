@@ -72,14 +72,14 @@ class OperationService(OperationServiceBase):
 
         self.render_service.render_all(
             allow_float=command.contains_argument(parameter_list.allow_float.name),
-            average_range=super()._get_argument_value(command, parameter_list.average_range, DEFAULT_AVERAGE_RANGE),
-            days=super()._get_argument_value(command, parameter_list.days, DEFAULT_DAYS),
+            average_range=super()._get_argument_value(command, parameter_list.average_range),
+            days=super()._get_argument_value(command, parameter_list.days),
             is_dynamic=command.contains_argument(parameter_list.dynamic.name),
             is_today=command.contains_argument(parameter_list.today.name),
-            dots_count=super()._get_argument_value(command, parameter_list.dots_count, DEFAULT_DOTS_COUNT),
-            max_y_labels=super()._get_argument_value(command, parameter_list.max_y, DEFAULT_MAX_Y_LABELS),
-            style=super()._get_argument_value(command, parameter_list.style, DEFAULT_STYLE),
-            x_label=super()._get_argument_value(command, parameter_list.x_label, DEFAULT_X_LABEL)
+            dots_count=super()._get_argument_value(command, parameter_list.dots_count),
+            max_y_labels=super()._get_argument_value(command, parameter_list.max_y),
+            style=super()._get_argument_value(command, parameter_list.style),
+            x_label=super()._get_argument_value(command, parameter_list.x_label)
         )
 
         if command.contains_argument(parameter_list.open.name):

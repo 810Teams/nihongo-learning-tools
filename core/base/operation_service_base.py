@@ -168,8 +168,13 @@ class OperationServiceBase:
         length: int = len(MODIFICATION_ARGUMENT_IDENTIFIER)
         return len(line_part) > length and line_part[:length] == MODIFICATION_ARGUMENT_IDENTIFIER and line_part[length].isalpha()
 
-    def _get_argument_value(self, command: Command, parameter: Parameter, default_value: any) -> any:
+    def _get_argument_value(self, command: Command, parameter: Parameter) -> any:
         """ Method: Decide argument value based on argument in command and default value """
         if command.contains_argument(parameter.name):
             return parameter.value_type(command.get_argument(parameter.name).value)
-        return default_value
+
+        for operation in self.operation_list:
+            if command.name == operation.name:
+                for p in operation.parameter_list:
+                    if parameter.name == p.name:
+                        return p.default_value
