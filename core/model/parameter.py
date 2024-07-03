@@ -57,7 +57,7 @@ class Parameter:
                 error('Value of argument {} must be type {}.'.format(argument.name, self.value_type), display=display_error)
                 return False
 
-            if not self.validation(argument.value):
+            if not self.validation(self.value_type(argument.value)):
                 if isinstance(self.error_message, str) and len(self.error_message) > 0:
                     error(self.error_message, display=display_error)
                 else:
