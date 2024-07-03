@@ -2,8 +2,6 @@
     `nihongo_flashcard_visualizer/service/operation_service.py`
 """
 
-import os
-
 from core.base.operation_service_base import OperationServiceBase
 from core.model.command import Command
 from core.util.format import path

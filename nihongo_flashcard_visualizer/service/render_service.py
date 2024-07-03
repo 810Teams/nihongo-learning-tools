@@ -2,6 +2,9 @@
     `nihongo_flashcard_visualizer/service/render_service.py`
 """
 
+import numpy
+import pygal
+
 from math import ceil, floor
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
@@ -16,9 +19,6 @@ from nihongo_flashcard_visualizer.constant.estimated_progress_type import Estima
 from nihongo_flashcard_visualizer.constant.flashcard_type import FlashcardType
 from nihongo_flashcard_visualizer.model.flashcard import Flashcard
 from nihongo_flashcard_visualizer.settings import *
-
-import numpy
-import pygal
 
 
 class RenderService(RenderServiceBase):
