@@ -2,6 +2,8 @@
     `core/model/operation.py`
 """
 
+from typing import Callable
+
 from core.model.argument import Argument
 from core.model.command import Command
 from core.model.parameter import Parameter
@@ -10,9 +12,21 @@ from core.util.string import compare_ignore_case
 
 
 class Operation:
-    def __init__(self, name: str, value_type: type=None, description: str=str(), parameter_list: list[Parameter]=list()):
+    def __init__(
+            self,
+            name: str,
+            value_type: type=None,
+            default_value: any=None,
+            validation: Callable[[any], bool]=lambda x: True,
+            error_message: str=str(),
+            description: str=str(),
+            parameter_list: list[Parameter]=list()
+        ):
         self.name: str = name
         self.value_type: type = value_type
+        self.default_value: value_type = default_value
+        self.validation: Callable[[any], bool] = validation
+        self.error_message: str = error_message.strip()
         self.description: str = description
         self.parameter_list: list[Parameter] = parameter_list
 
@@ -54,6 +68,13 @@ class Operation:
                 self.value_type(command.value)
             except (TypeError, ValueError):
                 error('Value of command {} must be type {}.'.format(command.name, self.value_type), display=display_error)
+                return False
+
+            if not self.validation(command.value):
+                if isinstance(self.error_message, str) and len(self.error_message) > 0:
+                    error(self.error_message, display=display_error)
+                else:
+                    error('Value validation of command {} error.'.format(command.name), display=display_error)
                 return False
 
         arg: Argument

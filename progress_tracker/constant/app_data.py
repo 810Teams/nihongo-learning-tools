@@ -36,12 +36,12 @@ class OperationList:
             dynamic: Parameter = Parameter('-dynamic', description='Dynamic fill')
             open: Parameter = Parameter('-open', description='Open after render')
             today: Parameter = Parameter('-today', description='Today')
-            average_range: Parameter = Parameter('--average-range', value_type=int, description='Average range (Default: {})'.format(DEFAULT_AVERAGE_RANGE))
-            days: Parameter = Parameter('--days', value_type=int, description='Duration in days (Default: {})'.format(DEFAULT_DAYS))
-            dots_count: Parameter = Parameter('--dots-count', value_type=int, description='Maximum dot count (Default: {})'.format(DEFAULT_DOTS_COUNT))
-            max_y: Parameter = Parameter('--max-y', value_type=int, description='Maximum y-labels (Default: {})'.format(DEFAULT_MAX_Y_LABELS))
-            style: Parameter = Parameter('--style', value_type=str, description='Style (Default: {})'.format(DEFAULT_STYLE))
-            x_label: Parameter = Parameter('--x-label', value_type=str, description='X-label type (Default: {}) (Available: [date, count, both])'.format(DEFAULT_X_LABEL))
+            average_range: Parameter = Parameter('--average-range', value_type=int, default_value=DEFAULT_AVERAGE_RANGE, description='Average range')
+            days: Parameter = Parameter('--days', value_type=int, default_value=DEFAULT_DAYS, description='Duration in days')
+            dots_count: Parameter = Parameter('--dots-count', value_type=int, default_value=DEFAULT_DOTS_COUNT, description='Maximum dot count')
+            max_y: Parameter = Parameter('--max-y', value_type=int, default_value=DEFAULT_MAX_Y_LABELS, description='Maximum y-labels')
+            style: Parameter = Parameter('--style', value_type=str, default_value=DEFAULT_STYLE, description='Style')
+            x_label: Parameter = Parameter('--x-label', value_type=str, default_value=DEFAULT_X_LABEL, validation=lambda i: i in ['date', 'count', 'both'], error_message='X-label type must be either date, count, or both.', description='X-label type (Available: [date, count, both])')
 
         operation: Operation = Operation('chart', description='Create Charts', parameter_list=[
             ParameterList.allow_float,
