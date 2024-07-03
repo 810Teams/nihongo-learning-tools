@@ -35,6 +35,7 @@ class OperationList:
             allow_float: Parameter = Parameter('-allow-float', description='Allow floating points')
             dynamic: Parameter = Parameter('-dynamic', description='Dynamic fill')
             open: Parameter = Parameter('-open', description='Open after render')
+            open_only: Parameter = Parameter('-open-only', description='Open without render')
             today: Parameter = Parameter('-today', description='Today')
             average_range: Parameter = Parameter('--average-range', value_type=int, default_value=DEFAULT_AVERAGE_RANGE, description='Average range')
             days: Parameter = Parameter('--days', value_type=int, default_value=DEFAULT_DAYS, description='Duration in days')
@@ -47,6 +48,7 @@ class OperationList:
             ParameterList.allow_float,
             ParameterList.dynamic,
             ParameterList.open,
+            ParameterList.open_only,
             ParameterList.today,
             ParameterList.average_range,
             ParameterList.days,

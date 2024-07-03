@@ -70,6 +70,11 @@ class OperationService(OperationServiceBase):
         """ Method: Create Charts """
         parameter_list = OperationList.Chart.ParameterList
 
+        if command.contains_argument(parameter_list.open_only.name):
+            notice('Opening chart files.')
+            super()._open_file(path(CHART_BASE_PATH, '*'))
+            return
+
         self.render_service.render_all(
             allow_float=command.contains_argument(parameter_list.allow_float.name),
             average_range=super()._get_argument_value(command, parameter_list.average_range),
