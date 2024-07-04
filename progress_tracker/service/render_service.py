@@ -12,12 +12,13 @@ from core.base.render_service_base import RenderServiceBase
 from core.util.format import path
 from core.util.statistics import average
 from core.util.logging import error, notice
-from core.util.reader import contains_row_for_date, copy_list, is_empty
+from core.util.reader import copy_list
 from core.util.validation import is_valid_style
 from progress_tracker.constant.app_data import CHART_BASE_PATH, CHART_FILE_EXTENSION
 from progress_tracker.model.storage import Storage
 from progress_tracker.settings import *
 from progress_tracker.util.calculation import add_day_to_date, compare_date
+from progress_tracker.util.reader import contains_row_for_date, is_empty
 from progress_tracker.util.transform import transpose
 
 

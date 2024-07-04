@@ -6,13 +6,13 @@ from core.base.operation_service_base import OperationServiceBase
 from core.model.command import Command
 from core.util.format import path
 from core.util.logging import error, notice
-from core.util.reader import convert_csv_to_list
 from progress_tracker.constant.app_data import OPERATION_LIST, CHART_BASE_PATH, OperationList
 from progress_tracker.custom.append import custom_append_head
 from progress_tracker.model.storage import Storage
 from progress_tracker.service.backup_service import BackupService
 from progress_tracker.service.render_service import RenderService
 from progress_tracker.settings import *
+from progress_tracker.util.reader import convert_csv_to_list
 
 
 class OperationService(OperationServiceBase):

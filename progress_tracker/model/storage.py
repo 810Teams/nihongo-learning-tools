@@ -11,8 +11,8 @@ from io import TextIOWrapper
 from pandas import DataFrame
 
 from core.util.format import path
-from core.util.reader import is_empty
 from progress_tracker.constant.app_data import STORAGE_BASE_PATH, STORAGE_FILE_EXTENSION
+from progress_tracker.util.reader import is_empty
 
 
 class Storage:

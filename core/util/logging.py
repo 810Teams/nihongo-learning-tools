@@ -2,7 +2,6 @@
     `core/util/logging.py`
 """
 
-
 def error(message: str, end: str='\n', start: str=str(), display: bool=True) -> None:
     """ Display error message """
     if display:
