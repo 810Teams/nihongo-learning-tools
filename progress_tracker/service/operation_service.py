@@ -22,10 +22,6 @@ class OperationService(OperationServiceBase):
         self.render_service: RenderService = RenderService(storage)
         self.backup_service: BackupService = BackupService(storage)
 
-    def execute(self, line: str) -> None:
-        """ Method: Validate and execute command """
-        super().execute(line)
-
     def _operate_append(self, command: Command) -> None:
         """ Method: Add Data """
         value = command.value

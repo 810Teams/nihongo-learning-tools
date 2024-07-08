@@ -69,9 +69,12 @@ class BackupService:
         notice('Storage {} has been overridden by backup loading.'.format(self.storage.name))
         notice('In case of mistake, the overridden storage file can be recovered in `{}`.'.format(STORAGE_BASE_PATH))
 
-
     def validate_backup_path(self) -> None:
         """ Method: Validate backup path """
+        if not ENABLE_BACKUP:
+            notice('Backup is disabled. This can be enabled in `settings.py`.')
+            return
+
         valid_backup_path_list = list()
         error_backup_path_list = list()
 

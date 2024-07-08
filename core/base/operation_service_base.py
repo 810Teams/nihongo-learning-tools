@@ -4,12 +4,13 @@
 
 import os
 
-from core.constant.identifier import MODIFICATION_ARGUMENT_IDENTIFIER, VALUE_PARSING_ARGUMENT_IDENTIFIER
+from core.constant.identifier import *
 from core.model.argument import Argument
 from core.model.command import Command
 from core.model.operation import Operation
 from core.model.parameter import Parameter
 from core.util.logging import error, notice
+from settings import ENABLE_PYCLEAN
 
 
 class OperationServiceBase:
@@ -22,6 +23,7 @@ class OperationServiceBase:
         top_frame: str = '┌' + (len(title) - 2) * '-' + '┐'
         bottom_frame: str = '└' + (len(title) - 2) * '-' + '┘'
 
+        print()
         print(top_frame)
         print(title)
         print(bottom_frame)
@@ -43,17 +45,23 @@ class OperationServiceBase:
             error('Command \'{}\' error.'.format(command.name))
             error('Please check value types of the command as well as its arguments.')
         else:
-            exec('self._operate_{}(command)'.format(command.name))
+            return eval('self._operate_{}(command)'.format(command.name))
 
     def _operate_help(self, command: Command) -> None:
         """ Operation: Display operation list """
         self.display_operation_list()
 
+    def _operate_switch(self, command: Command) -> int:
+        """ Operation: Switch application """
+        notice('Switching application.')
+        return APPLICATION_SWITCH_SIGNAL
+
     def _operate_exit(self, command: Command) -> None:
         """ Operation: Exit """
         notice('Exitting application.')
-        print()
-        os.system('pyclean .')
+        if ENABLE_PYCLEAN:
+            print()
+            os.system('pyclean .')
         print()
         exit()
 

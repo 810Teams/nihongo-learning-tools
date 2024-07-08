@@ -94,6 +94,12 @@ class OperationList:
 
         operation: Operation = Operation('view', description='View Storage', parameter_list=[])
 
+    class Switch:
+        class ParameterList:
+            pass
+
+        operation: Operation = Operation('switch', description='Switch Application', parameter_list=[])
+
     class Exit:
         class ParameterList:
             pass
@@ -110,5 +116,6 @@ OPERATION_LIST = [
     OperationList.Save.operation,
     OperationList.Sync.operation,
     OperationList.View.operation,
+    OperationList.Switch.operation,
     OperationList.Exit.operation,
 ]

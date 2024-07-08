@@ -1,10 +1,10 @@
 """
-    `progress_tracker/application.py`
+    `progress_tracker/app/progress_tracker_app.py`
 """
 
 import sys
 
-from core.base.app import ApplicationBase
+from core.base.app_base import ApplicationBase
 from core.util.logging import notice
 from progress_tracker.constant.app_data import *
 from progress_tracker.model.storage import Storage
@@ -20,7 +20,7 @@ class ProgressTrackerApplication(ApplicationBase):
         """ Method: Verify required folder paths and set up folders if not exist """
         super().setup(folder_path_list=[CHART_BASE_PATH, STORAGE_BASE_PATH])
 
-    def run(self) -> None:
+    def start(self) -> None:
         """ Method: Run the application """
         # Title
         super()._display_app_title(APP_NAME, AUTHOR, VERSION)
@@ -54,4 +54,4 @@ class ProgressTrackerApplication(ApplicationBase):
         # Start
         self.operation_service = OperationService(storage)
         self.operation_service.backup_service.validate_backup_path()
-        super()._start()
+        return super().start()

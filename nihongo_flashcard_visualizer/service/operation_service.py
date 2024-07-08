@@ -22,10 +22,6 @@ class OperationService(OperationServiceBase):
         self.render_service: RenderService = RenderService()
         self.nihongo_backup: NihongoBackup = NihongoBackup()
 
-    def execute(self, line: str) -> None:
-        """ Method: Validate and execute command """
-        super().execute(line)
-
     def _operate_chart(self, command: Command):
         """ Function: Create Charts """
         parameter_list = OperationList.Chart.ParameterList
