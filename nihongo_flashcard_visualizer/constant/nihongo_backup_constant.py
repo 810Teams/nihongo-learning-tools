@@ -1,5 +1,5 @@
 """
-    `nihongo_flashcard_visualzer/constant/nihongo_backup_constant.py`
+    `nihongo_flashcard_visualzer/constant/nihongo_backup_constants.py`
 """
 
 class NihongoBackupConstant:

@@ -2,6 +2,9 @@
     `progress_tracker/util/reader.py`
 """
 
+from typing import Any
+
+
 def convert_csv_to_list(value: str, value_type: type=str, replace_null: str=str()) -> list:
     """ Function: Convert CSV to list """
     converted_list = [i.replace(' ', str()) for i in value.split(',')]
@@ -45,7 +48,7 @@ def contains_nan(row: list) -> bool:
     return False
 
 
-def is_empty(value: any) -> bool:
+def is_empty(value: Any) -> bool:
     """ Function: Check if empty value """
     try:
         return value == str() or value is None or is_nan(value)

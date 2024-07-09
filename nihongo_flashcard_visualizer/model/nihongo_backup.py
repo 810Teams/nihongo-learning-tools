@@ -9,7 +9,7 @@ from core.util.format import path
 from core.util.logging import error, notice
 from nihongo_flashcard_visualizer.constant.app_data import *
 from nihongo_flashcard_visualizer.constant.flashcard_type import FlashcardType
-from nihongo_flashcard_visualizer.constant.nihongo_backup_constants import NihongoBackupConstant
+from nihongo_flashcard_visualizer.constant.nihongo_backup_constant import NihongoBackupConstant
 from nihongo_flashcard_visualizer.settings import *
 from sqlite3 import Connection, Cursor
 

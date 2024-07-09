@@ -10,7 +10,7 @@ from nihongo_flashcard_visualizer.error.flashcard_error import FlashcardError
 class Flashcard:
     PROGRESS_DAY_LIST = (1, 2, 3, 7, 14, 21, 30, 60, 90, 180, 270, 360, None)
 
-    def __init__(self, progress: int=0, days: int=None):
+    def __init__(self, progress: int=0, days: int=None) -> None:
         self.progress: int = progress
         self.days: int = days
 
@@ -20,7 +20,7 @@ class Flashcard:
         if not self._validate():
             raise FlashcardError
 
-    def count(self):
+    def count(self) -> None:
         """ Method: Countdown flashcard next review days by one """
         if self.progress == 12:
             raise FlashcardError
@@ -28,9 +28,9 @@ class Flashcard:
         if self.days >= 1:
             self.days -= 1
 
-    def review(self, correct_p: float=1.0):
+    def review(self, correct_p: float=1.0) -> None:
         """ Method: Review flashcard """
-        is_correct = choices([False, True], [1 - correct_p, correct_p])[0]
+        is_correct: bool = choices([False, True], [1 - correct_p, correct_p])[0]
 
         if self.days == 0 and self.progress < 12:
             if is_correct:

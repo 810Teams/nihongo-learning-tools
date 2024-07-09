@@ -8,7 +8,7 @@ from nihongo_flashcard_visualizer.service.operation_service import OperationServ
 
 
 class NihongoFlashcardVisualizerApplication(ApplicationBase):
-    def __init__(self):
+    def __init__(self) -> None:
         self.operation_service: OperationService = None
 
     def setup(self) -> None:

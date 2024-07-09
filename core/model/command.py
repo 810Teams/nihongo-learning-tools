@@ -2,14 +2,16 @@
     `core/model/command.py`
 """
 
+from typing import Any
+
 from core.model.argument import Argument
 from core.util.string import compare_ignore_case
 
 
 class Command:
-    def __init__(self, name: str, value: any=None, argument_list: list[Argument]=list()):
+    def __init__(self, name: str, value: Any=None, argument_list: list[Argument]=list()) -> Any:
         self.name: str = name
-        self.value: any = value
+        self.value: Any = value
         self.argument_list: list[Argument] = argument_list
 
     def __str__(self) -> str:

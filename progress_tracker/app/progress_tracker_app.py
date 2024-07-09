@@ -13,7 +13,7 @@ from progress_tracker.settings import DEFAULT_STORAGE
 
 
 class ProgressTrackerApplication(ApplicationBase):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     def setup(self) -> None:
@@ -35,13 +35,14 @@ class ProgressTrackerApplication(ApplicationBase):
             notice('Please input the name of the storage.')
             print()
             storage = Storage(input('(Input) ').strip())
-            print()
 
         # Storage loading
         if storage.try_load():
-            notice('Storage \'{}\' already exists, proceeding to storage loading.'.format(storage.name), start='\n')
+            print()
+            notice('Storage \'{}\' already exists, proceeding to storage loading.'.format(storage.name))
         else:
-            notice('Storage \'{}\' does not exist yet and requires set-up.'.format(storage.name), start='\n')
+            print()
+            notice('Storage \'{}\' does not exist yet and requires set-up.'.format(storage.name))
             notice('Please input the columns of the storage.')
             print()
             columns: list = input('(Input) ').strip().replace(' ', str()).split(',')

@@ -2,6 +2,8 @@
     `progress_tracker/service/operation_service.py`
 """
 
+from typing import Any
+
 from core.base.operation_service_base import OperationServiceBase
 from core.model.command import Command
 from core.util.format import path
@@ -16,7 +18,7 @@ from progress_tracker.util.reader import convert_csv_to_list
 
 
 class OperationService(OperationServiceBase):
-    def __init__(self, storage: Storage):
+    def __init__(self, storage: Storage) -> None:
         super().__init__(OPERATION_LIST)
         self.storage: Storage = storage
         self.render_service: RenderService = RenderService(storage)
@@ -24,7 +26,7 @@ class OperationService(OperationServiceBase):
 
     def _operate_append(self, command: Command) -> None:
         """ Method: Add Data """
-        value = command.value
+        value: Any = command.value
 
         if command.contains_argument(OperationList.Append.ParameterList.add.name):
             try:

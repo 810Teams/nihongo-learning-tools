@@ -35,7 +35,7 @@ class ApplicationBase:
             if self.operation_service.execute(line) == APPLICATION_SWITCH_SIGNAL:
                 return
 
-    def _display_app_title(self, app_name: str, author: str, version: str):
+    def _display_app_title(self, app_name: str, author: str, version: str) -> None:
         """ Method: Display application title """
         os.system('clear')
 

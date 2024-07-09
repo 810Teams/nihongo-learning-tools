@@ -8,8 +8,8 @@ from core.util.logging import notice
 
 
 class RenderServiceBase:
-    def __init__(self):
-        self.CHART_FILE_EXTENSION: str = '.svg'
+    def __init__(self) -> None:
+        pass
 
     def _get_style(self, style_name: str) -> Style:
         """ Function: Verify if chart style is valid and returns the style class """

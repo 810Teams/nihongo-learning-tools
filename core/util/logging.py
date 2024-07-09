@@ -2,22 +2,21 @@
     `core/util/logging.py`
 """
 
-def error(message: str, end: str='\n', start: str=str(), display: bool=True) -> None:
+def error(*messages: tuple[str], end: str='\n', sep: str=' ', display: bool=True) -> None:
     """ Display error message """
-    if display:
-        print(start, end=str())
-        print('[ERROR]', message, end=end)
+    _title_print('ERROR', messages=messages, end=end, sep=sep, display=display)
 
 
-def log(message: str, end: str='\n', start: str=str(), display: bool=True) -> None:
+def log(*messages: tuple[str], end: str='\n', sep: str=' ', display: bool=True) -> None:
     """ Display log message """
-    if display:
-        print(start, end=str())
-        print('[LOG]', message, end=end)
+    _title_print('LOG', messages=messages, end=end, sep=sep, display=display)
 
 
-def notice(message: str, end: str='\n', start: str=str(), display: bool=True) -> None:
+def notice(*messages: tuple[str], end: str='\n', sep: str=' ', display: bool=True) -> None:
     """ Display notice message """
+    _title_print('NOTICE', messages=messages, end=end, sep=sep, display=display)
+
+
+def _title_print(title: str, messages: tuple[str], end: str='\n', sep: str=' ', display: bool=True) -> None:
     if display:
-        print(start, end=str())
-        print('[NOTICE]', message, end=end)
+        print('[{}]'.format(title), sep.join(messages), end=end)

@@ -7,6 +7,7 @@ import pygal
 from datetime import datetime
 from math import ceil, floor
 from time import perf_counter
+from typing import Any
 
 from core.base.render_service_base import RenderServiceBase
 from core.util.format import path
@@ -23,9 +24,9 @@ from progress_tracker.util.transform import transpose
 
 
 class RenderService(RenderServiceBase):
-    def __init__(self, storage: Storage):
+    def __init__(self, storage: Storage) -> None:
         self.storage: Storage = storage
-        self.CHART_TYPE_LIST: list = [
+        self.CHART_TYPE_LIST: list[str] = [
             'total default',
             'total stacked',
             'rate default',
@@ -48,7 +49,8 @@ class RenderService(RenderServiceBase):
     ) -> None:
         """ Method: Analysis """
         # Data Preparation
-        data = self._clean(self.storage.to_list())
+        data[list[list[Any]]] = self.storage.to_list()
+        data = self._clean(data)
         data = self._fill_missing_data(data, is_dynamic=is_dynamic, is_today=is_today)
 
         # Arguments Validation (Pre-slice)
@@ -88,7 +90,7 @@ class RenderService(RenderServiceBase):
 
         notice('Total time spent rendering charts is {:.2f} seconds.'.format(perf_counter() - time_start))
 
-    def _clean(self, data: list[list]) -> list:
+    def _clean(self, data: list[list[Any]]) -> list[list[Any]]:
         """ Method: Clean Data """
         # Step 1 - Sort
         data.sort(key=lambda i: i[0])
@@ -102,7 +104,7 @@ class RenderService(RenderServiceBase):
         # Step 4 - Return
         return data
 
-    def _fill_missing_data(self, data: list[list], is_dynamic: bool=False, is_today: bool=False) -> list:
+    def _fill_missing_data(self, data: list[list[Any]], is_dynamic: bool=False, is_today: bool=False) -> list[list[Any]]:
         """ Method: Fill missing data """
         # Step 1: Prepare data
         data_new = copy_list(data)
@@ -134,9 +136,9 @@ class RenderService(RenderServiceBase):
         # Step 5: Return
         return data_new
 
-    def _fill_missing_data_in_column(self, data: list[list], is_dynamic: bool=False) -> list:
+    def _fill_missing_data_in_column(self, data: list[list[Any]], is_dynamic: bool=False) -> list[list[Any]]:
         # Step 1: Determine missing indexes, store in groups
-        missing_index_list = [list()]
+        missing_index_list: list[list[Any]] = [list()]
 
         for i in range(len(data)):
             if is_empty(data[i]):
@@ -166,7 +168,7 @@ class RenderService(RenderServiceBase):
         # Step 3: Return
         return filled_data
 
-    def _today_fill(self, data: list[list]) -> list:
+    def _today_fill(self, data: list[list[Any]]) -> list[list[Any]]:
         """ Method: Fill date until today """
         data_copy = [i for i in data]
         today = str(datetime.now().date())
@@ -181,7 +183,7 @@ class RenderService(RenderServiceBase):
 
     def _validate_arguments_pre_slice(
         self,
-        data: list[list],
+        data: list[list[Any]],
         days: int=DEFAULT_DAYS,
         max_y_labels: int=DEFAULT_MAX_Y_LABELS,
         style: str=DEFAULT_STYLE,
@@ -210,11 +212,11 @@ class RenderService(RenderServiceBase):
 
         return True
 
-    def _slice_data(self, data: list[list], days: int=DEFAULT_DAYS) -> list:
+    def _slice_data(self, data: list[list[Any]], days: int=DEFAULT_DAYS) -> list[list[Any]]:
         """ Method: Slice data based on days count """
         return data[-1 * days:]
 
-    def _validate_arguments_post_slice(self, data: list[list], average_range: int=DEFAULT_AVERAGE_RANGE, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
+    def _validate_arguments_post_slice(self, data: list[list[Any]], average_range: int=DEFAULT_AVERAGE_RANGE, dots_count: int=DEFAULT_DOTS_COUNT) -> bool:
         """ Method: Validates arguments which depends on the length of sliced data """
         # -average argument
         if average_range != None and not (1 <= average_range <= len(data) - 1):
@@ -228,7 +230,7 @@ class RenderService(RenderServiceBase):
 
         return True
 
-    def _render_chart_total(self, data: list[list], max_y_labels: int=DEFAULT_MAX_Y_LABELS, style: str=DEFAULT_STYLE, allow_float: bool=False) -> None:
+    def _render_chart_total(self, data: list[list[Any]], max_y_labels: int=DEFAULT_MAX_Y_LABELS, style: str=DEFAULT_STYLE, allow_float: bool=False) -> None:
         """ Method: Total Analysis """
         chart = pygal.Bar()
 
@@ -262,7 +264,7 @@ class RenderService(RenderServiceBase):
 
     def _render_chart_development(
         self,
-        data: list[list],
+        data: list[list[Any]],
         chart_type: str='total default',
         average_range: int=DEFAULT_AVERAGE_RANGE,
         dots_count: int=DEFAULT_DOTS_COUNT,
@@ -441,11 +443,11 @@ class RenderService(RenderServiceBase):
 
         return data_range
 
-    def _get_dot_data_list(self, data: list[list], dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> list:
+    def _get_dot_data_list(self, data: list[list[Any]], dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> list:
         """ Method: Get a list of dot node data based on data and dots count """
         return [self._get_dot_data(data, i, dots_count=dots_count, force_visible=force_visible, visible_at_zero=visible_at_zero) for i in range(len(data))]
 
-    def _get_dot_data(self, data: list[list], index: int, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> dict:
+    def _get_dot_data(self, data: list[list[Any]], index: int, dots_count: int=DEFAULT_DOTS_COUNT, force_visible: bool=False, visible_at_zero: bool=True) -> dict:
         """ Method: Get dot node data for adding into chart based on actual data, index, and dots count """
         if force_visible:
             dot_visibility = True

@@ -17,12 +17,12 @@ from nihongo_flashcard_visualizer.util.statistics import progress_coverage
 
 
 class OperationService(OperationServiceBase):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(OPERATION_LIST)
         self.render_service: RenderService = RenderService()
         self.nihongo_backup: NihongoBackup = NihongoBackup()
 
-    def _operate_chart(self, command: Command):
+    def _operate_chart(self, command: Command) -> None:
         """ Function: Create Charts """
         parameter_list = OperationList.Chart.ParameterList
 
@@ -46,11 +46,11 @@ class OperationService(OperationServiceBase):
             notice('Opening chart files.')
             super()._open_file(path(CHART_BASE_PATH, '*'))
 
-    def _operate_extract(self, command: Command):
+    def _operate_extract(self, command: Command) -> None:
         """ Function: Extract Nihongo Database """
         self.nihongo_backup.extract()
 
-    def _operate_stat(self, command: Command):
+    def _operate_stat(self, command: Command) -> None:
         """ Function: View Statistics """
         raw_data: dict[str, list[int]] = self.nihongo_backup.get_uncounted_flashcard_process()
 
@@ -66,4 +66,3 @@ class OperationService(OperationServiceBase):
             if i + 1 < 2:
                 print()
                 i += 1
-

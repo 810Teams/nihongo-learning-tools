@@ -2,7 +2,7 @@
     `core/model/operation.py`
 """
 
-from typing import Callable
+from typing import Any, Callable
 
 from core.model.argument import Argument
 from core.model.command import Command
@@ -16,16 +16,16 @@ class Operation:
             self,
             name: str,
             value_type: type=None,
-            default_value: any=None,
-            validation: Callable[[any], bool]=lambda x: True,
+            default_value: Any=None,
+            validation: Callable[[Any], bool]=lambda x: True,
             error_message: str=str(),
             description: str=str(),
             parameter_list: list[Parameter]=list()
-        ):
+        ) -> None:
         self.name: str = name
         self.value_type: type = value_type
         self.default_value: value_type = default_value
-        self.validation: Callable[[any], bool] = validation
+        self.validation: Callable[[Any], bool] = validation
         self.error_message: str = error_message.strip()
         self.description: str = description
         self.parameter_list: list[Parameter] = parameter_list

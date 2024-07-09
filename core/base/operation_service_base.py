@@ -14,7 +14,7 @@ from settings import ENABLE_PYCLEAN
 
 
 class OperationServiceBase:
-    def __init__(self, operation_list: list=[]):
+    def __init__(self, operation_list: list=[]) -> None:
         self.operation_list: list[Operation] = operation_list
 
     def display_operation_list(self) -> None:

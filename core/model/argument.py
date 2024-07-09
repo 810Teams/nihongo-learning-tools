@@ -4,7 +4,7 @@
 
 
 class Argument:
-    def __init__(self, name: str, value: type=None):
+    def __init__(self, name: str, value: type=None) -> None:
         self.name: str = name
         self.value: type = value
 

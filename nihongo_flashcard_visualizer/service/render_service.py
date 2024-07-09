@@ -22,8 +22,8 @@ from nihongo_flashcard_visualizer.settings import *
 
 
 class RenderService(RenderServiceBase):
-    def __init__(self):
-        pass
+    def __init__(self) -> None:
+        super().__init__()
 
     def render_all(
         self,
