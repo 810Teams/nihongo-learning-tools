@@ -7,8 +7,8 @@ import numpy
 import pandas
 
 from datetime import datetime
-from io import TextIOWrapper
 from pandas import DataFrame
+from pathlib import Path
 from typing import Any
 
 from core.util.format import path
@@ -64,9 +64,9 @@ class Storage:
     def setup(self, columns: list[str]) -> pandas.DataFrame:
         """ System Method: View storage """
         self.data = pandas.DataFrame([], columns=[StorageConstant.Columns.TIMESTAMP] + columns)
-        f: TextIOWrapper = open('{}'.format(self.get_path()), 'w')
-        f.write(','.join([StorageConstant.Columns.TIMESTAMP] + columns))
-        f.close()
+        f: Path = Path(self.get_path())
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(','.join([StorageConstant.Columns.TIMESTAMP] + columns))
 
     def try_load(self) -> bool:
         """ System Method: Try loading a storage """
