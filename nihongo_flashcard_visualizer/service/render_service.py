@@ -143,6 +143,7 @@ class RenderService(RenderServiceBase):
         # Chart Legends
         chart.show_legend = True
         chart.legend_at_bottom = True
+        chart.legend_at_bottom_columns = len(LEARN_PATTERN_LIST)
         chart.legend_box_size = 15
 
         # Chart Render
