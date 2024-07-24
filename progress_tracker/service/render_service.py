@@ -49,7 +49,7 @@ class RenderService(RenderServiceBase):
     ) -> None:
         """ Method: Analysis """
         # Data Preparation
-        data[list[list[Any]]] = self.storage.to_list()
+        data: list[list[Any]] = self.storage.to_list()
         data = self._clean(data)
         data = self._fill_missing_data(data, is_dynamic=is_dynamic, is_today=is_today)
 
