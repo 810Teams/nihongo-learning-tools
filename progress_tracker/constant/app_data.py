@@ -25,7 +25,7 @@ class OperationList:
             add: Parameter = Parameter('-add', description='Add mode')
             custom: Parameter = Parameter('--custom', value_type=int, description='Custom written method')
 
-        operation = Operation = Operation('append', value_type=str, description='Append Data', parameter_list=[
+        operation: Operation = Operation('append', value_type=str, description='Append Data', parameter_list=[
             ParameterList.add,
             ParameterList.custom,
         ])
