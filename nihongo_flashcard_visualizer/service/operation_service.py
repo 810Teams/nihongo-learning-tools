@@ -2,10 +2,13 @@
     `nihongo_flashcard_visualizer/service/operation_service.py`
 """
 
+import sqlite3
+
 from core.base.operation_service_base import OperationServiceBase
+from core.error.invalid_settings_error import InvalidSettingsError
 from core.model.command import Command
 from core.util.format import path
-from core.util.logging import notice
+from core.util.logging import notice, error
 from core.util.statistics import average, median, standard_dev
 from nihongo_flashcard_visualizer.constant.app_data import *
 from nihongo_flashcard_visualizer.constant.flashcard_type import FlashcardType
@@ -31,8 +34,17 @@ class OperationService(OperationServiceBase):
             super()._open_file(path(CHART_BASE_PATH, '*'))
             return
 
+        try:
+            counted_flashcard_progress: dict[str, list[int]] = self.nihongo_backup.get_counted_flashcard_progress()
+        except FileNotFoundError:
+            error('SQLite file not found. Please extract SQLite file before proceeding.')
+            return
+        except sqlite3.OperationalError:
+            error('SQLite file found but reading error. Please try extracting SQLite file again.')
+            return
+
         self.render_service.render_all(
-            self.nihongo_backup.get_counted_flashcard_progress(),
+            counted_flashcard_progress,
             days=super()._get_argument_value(command, parameter_list.days),
             incorrect_p=super()._get_argument_value(command, parameter_list.incorrect_probability),
             max_y_labels=super()._get_argument_value(command, parameter_list.max_y),
@@ -48,14 +60,27 @@ class OperationService(OperationServiceBase):
 
     def _operate_extract(self, command: Command) -> None:
         """ Function: Extract Nihongo Database """
-        self.nihongo_backup.extract()
+        try:
+            self.nihongo_backup.extract()
+        except FileNotFoundError:
+            error('Extraction error. Nihongo backup file not found.')
+        except InvalidSettingsError:
+            error('Extraction error. Please verify Nihongo backup path in `settings.py`.')
 
     def _operate_stat(self, command: Command) -> None:
         """ Function: View Statistics """
-        raw_data: dict[str, list[int]] = self.nihongo_backup.get_uncounted_flashcard_process()
+        try:
+            raw_data: dict[str, list[int]] = self.nihongo_backup.get_flashcard_progress()
+        except FileNotFoundError:
+            error('SQLite file not found. Please extract SQLite file before proceeding.')
+            return
+        except sqlite3.OperationalError:
+            error('SQLite file found but reading error. Please try extracting SQLite file again.')
+            return
 
-        i = 0
         for flashcard_type in (FlashcardType.WORD, FlashcardType.KANJI):
+            if flashcard_type == FlashcardType.KANJI:
+                print()
             print(' - {} Statistics -'.format(flashcard_type.capitalize()))
             print('   Total: {}'.format(len(raw_data[flashcard_type])))
             print('   Median: {}'.format(level_format(median(raw_data[flashcard_type]), initial_level=1, remainder=True)))
@@ -63,6 +88,6 @@ class OperationService(OperationServiceBase):
             print('   Standard Deviation: {}'.format(level_format(standard_dev(raw_data[flashcard_type]), initial_level=0, remainder=True)))
             print('   Progress Coverage: {:.2f}%'.format(progress_coverage(raw_data[flashcard_type]) * 100))
 
-            if i + 1 < 2:
-                print()
-                i += 1
+
+
+
