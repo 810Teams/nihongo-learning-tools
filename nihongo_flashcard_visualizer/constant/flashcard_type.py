@@ -3,6 +3,6 @@
 """
 
 class FlashcardType:
-    WORD = 'word'
-    KANJI = 'kanji'
-    ANY = 'any'
+    WORD: str = 'word'
+    KANJI: str = 'kanji'
+    ANY: str = 'any'

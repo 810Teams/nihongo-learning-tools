@@ -6,6 +6,7 @@ import numpy
 import pygal
 
 from math import ceil, floor
+from pygal.style import Style, DefaultStyle
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from time import perf_counter
@@ -51,7 +52,7 @@ class RenderService(RenderServiceBase):
             days: int=60,
             max_y_labels: int=15,
             simulation_mode: bool=False,
-            style: str=DEFAULT_STYLE
+            style: Style=DefaultStyle
         ):
         """ Function: Renders the words and kanji by level chart """
         chart: pygal.HorizontalStackedBar = pygal.HorizontalStackedBar()
@@ -93,7 +94,7 @@ class RenderService(RenderServiceBase):
         max_y_labels: int=15,
         show_correlation: bool=False,
         simulation_mode: bool=False,
-        style: str=DEFAULT_STYLE
+        style: Style=DefaultStyle
     ):
         """ Function: Renders the estimated flashcards per day chart """
         chart: pygal.Line = pygal.Line()
@@ -160,7 +161,13 @@ class RenderService(RenderServiceBase):
         # Notice
         self._notice_chart_export('estimated')
 
-    def _render_progress(self, data: dict, days: int=DEFAULT_DAYS, simulation_mode: bool=False, style: str=DEFAULT_STYLE):
+    def _render_progress(
+            self,
+            data: dict,
+            days: int=DEFAULT_DAYS,
+            simulation_mode: bool=False,
+            style: Style=DefaultStyle
+        ):
         """ Function: Renders the progress chart """
         chart: pygal.Histogram = pygal.Histogram()
 

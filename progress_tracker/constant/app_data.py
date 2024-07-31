@@ -8,15 +8,15 @@ from core.util.format import path
 from progress_tracker.settings import DEFAULT_AVERAGE_RANGE, DEFAULT_DAYS, DEFAULT_DOTS_COUNT, DEFAULT_MAX_Y_LABELS, DEFAULT_STYLE, DEFAULT_X_LABEL
 
 
-APP_NAME = 'Progress Tracker Application'
-AUTHOR = '810Teams'
-VERSION = 'v3.0.0a'
+APP_NAME: str = 'Progress Tracker Application'
+AUTHOR: str = '810Teams'
+VERSION: str = 'v3.0.0a'
 
-APPPLICATION_DIRECTORY = 'progress_tracker/'
-STORAGE_BASE_PATH =  path(APPPLICATION_DIRECTORY, 'data')
-STORAGE_FILE_EXTENSION = '.csv'
-CHART_BASE_PATH =  path(APPPLICATION_DIRECTORY, 'export')
-CHART_FILE_EXTENSION = '.svg'
+APPPLICATION_DIRECTORY: str = 'progress_tracker/'
+STORAGE_BASE_PATH: str =  path(APPPLICATION_DIRECTORY, 'data')
+STORAGE_FILE_EXTENSION: str = '.csv'
+CHART_BASE_PATH: str =  path(APPPLICATION_DIRECTORY, 'export')
+CHART_FILE_EXTENSION: str = '.svg'
 
 
 class OperationList:
@@ -107,7 +107,7 @@ class OperationList:
         operation: Operation = Operation('exit', description='Exit Application', parameter_list=[])
 
 
-OPERATION_LIST = [
+OPERATION_LIST: list[Operation] = [
     OperationList.Append.operation,
     OperationList.Chart.operation,
     OperationList.Help.operation,

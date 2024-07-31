@@ -3,5 +3,5 @@
 """
 
 class EstimatedProgressType:
-    REVIEW = 'review'
-    VOCABULARY = 'vocabulary'
+    REVIEW: str = 'review'
+    VOCABULARY: str = 'vocabulary'

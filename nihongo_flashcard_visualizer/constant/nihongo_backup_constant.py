@@ -3,9 +3,9 @@
 """
 
 class NihongoBackupConstant:
-    TABLE_NAME = 'ZFLASHCARD'
+    TABLE_NAME: str = 'ZFLASHCARD'
 
     class Columns:
-        PROGRESS = 'ZPROGRESS'
-        STATUS = 'ZSTATUSASINT'
-        KANJI_TEXT = 'ZKANJITEXT'
+        PROGRESS: str = 'ZPROGRESS'
+        STATUS: str = 'ZSTATUSASINT'
+        KANJI_TEXT: str = 'ZKANJITEXT'

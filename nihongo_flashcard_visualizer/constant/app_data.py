@@ -8,17 +8,17 @@ from core.util.format import path
 from nihongo_flashcard_visualizer.settings import *
 
 
-APP_NAME = 'Nihongo Flashcard Visualizer'
-AUTHOR = '810Teams'
-VERSION = 'v3.0.0a'
+APP_NAME: str = 'Nihongo Flashcard Visualizer'
+AUTHOR: str = '810Teams'
+VERSION: str= 'v3.0.0a'
 
-APPLICATION_DIRECTORY = 'nihongo_flashcard_visualizer'
-DATABASE_BASE_PATH = path(APPLICATION_DIRECTORY, 'data')
-DATABASE_CONTAINER_NAME = 'NihongoBackup.nihongodata'
-DATABASE_FILE_NAME = 'Flashcards.sqlite'
-ZIP_FILE_EXTENSION = '.zip'
-CHART_BASE_PATH = path(APPLICATION_DIRECTORY, 'export')
-CHART_FILE_EXTENSION = '.svg'
+APPLICATION_DIRECTORY: str = 'nihongo_flashcard_visualizer'
+DATABASE_BASE_PATH: str = path(APPLICATION_DIRECTORY, 'data')
+DATABASE_CONTAINER_NAME: str = 'NihongoBackup.nihongodata'
+DATABASE_FILE_NAME: str = 'Flashcards.sqlite'
+ZIP_FILE_EXTENSION: str = '.zip'
+CHART_BASE_PATH: str = path(APPLICATION_DIRECTORY, 'export')
+CHART_FILE_EXTENSION: str = '.svg'
 
 
 class OperationList:
@@ -77,7 +77,7 @@ class OperationList:
         operation: Operation = Operation('exit', description='Exit Application', parameter_list=[])
 
 
-OPERATION_LIST = [
+OPERATION_LIST: list[Operation] = [
     OperationList.Chart.operation,
     OperationList.Extract.operation,
     OperationList.Help.operation,

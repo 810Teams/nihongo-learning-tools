@@ -65,14 +65,14 @@ class OperationServiceBase:
         print()
         exit()
 
-    def _open_file(self, path: str, display_error: bool=True):
+    def _open_file(self, path: str, display_error: bool=True) -> None:
         """ Function: Open file on system in a supported application """
         try:
             os.system('open {}'.format(path))
         except FileNotFoundError:
             error('File not found error, please try again.', display=display_error)
         except (OSError, PermissionError):
-            error('Something unexpected happened, please try again.', display=display_error)
+            error('Unexpected error, please try again.', display=display_error)
 
     def _extract_command_and_arguments(self, line: str, get_warning: bool=False) -> Command:
         """ Method: Convert a line of string to command object """
@@ -145,7 +145,7 @@ class OperationServiceBase:
                 notice('Command segment \'{}\' is not recognized by the program.'.format(warning))
         notice('Note that unrecognized command segments will not take effect.', end=str())
 
-    def _find_operation(self, command: Command, operation_list: list[Operation]) -> Operation:
+    def _find_operation(self, command: Command, operation_list: list[Operation]) -> Operation | None:
         """ Method: Get defined operation object """
         operation: Operation
         for operation in operation_list:
