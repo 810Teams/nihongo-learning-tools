@@ -10,7 +10,7 @@ from progress_tracker.settings import *
 
 APP_NAME: str = 'Progress Tracker Application'
 AUTHOR: str = '810Teams'
-VERSION: str = 'v3.0.0a'
+VERSION: str = 'v3.0.0'
 APP_ID: str = 'PROGRESS_TRACKER'
 
 APPPLICATION_DIRECTORY: str = 'progress_tracker'

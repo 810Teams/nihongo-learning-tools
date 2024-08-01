@@ -10,7 +10,7 @@ from nihongo_flashcard_visualizer.settings import *
 
 APP_NAME: str = 'Nihongo Flashcard Visualizer'
 AUTHOR: str = '810Teams'
-VERSION: str= 'v3.0.0a'
+VERSION: str= 'v3.0.0'
 APP_ID: str = 'NIHONGO_FLASHCARD_VISUALIZER'
 
 APPLICATION_DIRECTORY: str = 'nihongo_flashcard_visualizer'
