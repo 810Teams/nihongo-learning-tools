@@ -26,7 +26,7 @@ def main() -> None:
             INSTALLED_APPLICATIONS[index].start()
             index += 1
             index %= len(INSTALLED_APPLICATIONS)
-    except:
+    except Exception:
         error('Unexpected error occured, forcing the application to close.')
         if ENABLE_PYCLEAN:
             print()
