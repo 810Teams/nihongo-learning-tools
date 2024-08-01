@@ -5,14 +5,15 @@
 from core.model.operation import Operation
 from core.model.parameter import Parameter
 from core.util.format import path
-from progress_tracker.settings import DEFAULT_AVERAGE_RANGE, DEFAULT_DAYS, DEFAULT_DOTS_COUNT, DEFAULT_MAX_Y_LABELS, DEFAULT_STYLE, DEFAULT_X_LABEL
+from progress_tracker.settings import *
 
 
 APP_NAME: str = 'Progress Tracker Application'
 AUTHOR: str = '810Teams'
 VERSION: str = 'v3.0.0a'
+APP_ID: str = 'PROGRESS_TRACKER'
 
-APPPLICATION_DIRECTORY: str = 'progress_tracker/'
+APPPLICATION_DIRECTORY: str = 'progress_tracker'
 STORAGE_BASE_PATH: str =  path(APPPLICATION_DIRECTORY, 'data')
 STORAGE_FILE_EXTENSION: str = '.csv'
 CHART_BASE_PATH: str =  path(APPPLICATION_DIRECTORY, 'export')

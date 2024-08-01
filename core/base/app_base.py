@@ -13,7 +13,7 @@ class ApplicationBase:
         self.application_id: str = application_id
         self.operation_service: OperationServiceBase = None
 
-    def setup(self, folder_path_list: list[str]=[]):
+    def setup(self, folder_path_list: list[str]=[]) -> None:
         """ Method: Verify required folder paths and set up folders if not exist """
         folder_path: str
         for folder_path in folder_path_list:

@@ -1,5 +1,5 @@
 """
-    `base/service/operation_service_base.py`
+    `core/base/operation_service_base.py`
 """
 
 import os

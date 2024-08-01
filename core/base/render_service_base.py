@@ -1,5 +1,5 @@
 """
-    `base/service/render_service_base.py`
+    `core/base/render_service_base.py`
 """
 
 from pygal.style import Style, DefaultStyle
