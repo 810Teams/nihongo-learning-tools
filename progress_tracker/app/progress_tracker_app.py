@@ -13,8 +13,8 @@ from progress_tracker.settings import DEFAULT_STORAGE
 
 
 class ProgressTrackerApplication(ApplicationBase):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, application_id: str) -> None:
+        super().__init__(application_id)
 
     def setup(self) -> None:
         """ Method: Verify required folder paths and set up folders if not exist """

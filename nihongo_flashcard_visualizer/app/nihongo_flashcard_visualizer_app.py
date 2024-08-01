@@ -8,8 +8,8 @@ from nihongo_flashcard_visualizer.service.operation_service import OperationServ
 
 
 class NihongoFlashcardVisualizerApplication(ApplicationBase):
-    def __init__(self) -> None:
-        self.operation_service: OperationService = None
+    def __init__(self, application_id: str) -> None:
+        super().__init__(application_id)
 
     def setup(self) -> None:
         """ Method: Verify required folder paths and set up folders if not exist """

@@ -9,7 +9,8 @@ from core.constant.identifier import APPLICATION_SWITCH_SIGNAL
 
 
 class ApplicationBase:
-    def __init__(self) -> None:
+    def __init__(self, application_id: str) -> None:
+        self.application_id: str = application_id
         self.operation_service: OperationServiceBase = None
 
     def setup(self, folder_path_list: list[str]=[]):

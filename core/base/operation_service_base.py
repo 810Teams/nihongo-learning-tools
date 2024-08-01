@@ -4,13 +4,15 @@
 
 import os
 
+from typing import Any
+
 from core.constant.identifier import *
 from core.model.argument import Argument
 from core.model.command import Command
 from core.model.operation import Operation
 from core.model.parameter import Parameter
+from core.settings import ENABLE_PYCLEAN
 from core.util.logging import error, notice
-from settings import ENABLE_PYCLEAN
 
 
 class OperationServiceBase:
@@ -32,7 +34,7 @@ class OperationServiceBase:
         for operation in self.operation_list:
             print(operation)
 
-    def execute(self, line: str) -> None:
+    def execute(self, line: str) -> int | None:
         """ Method: Validate and execute command """
         command: Command = self._extract_command_and_arguments(line)
         self._display_command_warnings(line)
@@ -41,11 +43,13 @@ class OperationServiceBase:
         if not self._operation_exists(command, self.operation_list):
             error('Command \'{}\' error.'.format(command.name))
             error('Please check if the command exists.')
+            return
         elif not self._validate_command(command):
             error('Command \'{}\' error.'.format(command.name))
             error('Please check value types of the command as well as its arguments.')
-        else:
-            return eval('self._operate_{}(command)'.format(command.name))
+            return
+
+        return eval('self._operate_{}(command)'.format(command.name))
 
     def _operate_help(self, command: Command) -> None:
         """ Operation: Display operation list """
@@ -74,12 +78,12 @@ class OperationServiceBase:
         except (OSError, PermissionError):
             error('Unexpected error, please try again.', display=display_error)
 
-    def _extract_command_and_arguments(self, line: str, get_warning: bool=False) -> Command:
+    def _extract_command_and_arguments(self, line: str, get_warning: bool=False) -> Command | list[str]:
         """ Method: Convert a line of string to command object """
-        line_parts: list = line.strip().split(' ')
+        line_parts: list[str] = line.strip().split(' ')
 
         command: Command = Command(line_parts[0], argument_list=list())
-        warning_segments: list = list()
+        warning_segments: list[str] = list()
 
         arg_found: bool = False
         warning_arg_found: bool = False
@@ -94,7 +98,6 @@ class OperationServiceBase:
                     warning_arg_found = True
                 else:
                     command.argument_list.append(Argument(line_parts[i]))
-
 
             # Modification argument spotted
             elif self._is_modification_argument(line_parts[i]):
@@ -159,7 +162,7 @@ class OperationServiceBase:
 
     def _validate_command(self, command: Command) -> bool:
         """ Method: Validate command """
-        operation: Operation = self._find_operation(command, self.operation_list)
+        operation: Operation | None = self._find_operation(command, self.operation_list)
 
         if operation is None:
             return False
@@ -176,7 +179,7 @@ class OperationServiceBase:
         length: int = len(MODIFICATION_ARGUMENT_IDENTIFIER)
         return len(line_part) > length and line_part[:length] == MODIFICATION_ARGUMENT_IDENTIFIER and line_part[length].isalpha()
 
-    def _get_argument_value(self, command: Command, parameter: Parameter) -> any:
+    def _get_argument_value(self, command: Command, parameter: Parameter) -> Any:
         """ Method: Decide argument value based on argument in command and default value """
         if command.contains_argument(parameter.name):
             return parameter.value_type(command.get_argument(parameter.name).value)
