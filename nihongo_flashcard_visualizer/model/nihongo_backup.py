@@ -38,11 +38,10 @@ class NihongoBackup:
 
     def get_flashcard_progress(self) -> dict[str, list[int]]:
         """ Function: Gets uncounted flashcard progress data """
-        if self.connection is None or not isinstance(self.connection, Connection):
-            if os.path.exists(path(DATABASE_BASE_PATH, DATABASE_FILE_NAME)):
-                self.connection = sqlite3.connect(path(DATABASE_BASE_PATH, DATABASE_FILE_NAME))
-            else:
-                raise FileNotFoundError
+        if os.path.exists(path(DATABASE_BASE_PATH, DATABASE_FILE_NAME)):
+            self.connection = sqlite3.connect(path(DATABASE_BASE_PATH, DATABASE_FILE_NAME))
+        elif not isinstance(self.connection, Connection):
+            raise FileNotFoundError
 
         cursor: Cursor = self.connection.cursor()
         cursor.execute('SELECT {}, {}, {} FROM {}'.format(
@@ -50,9 +49,9 @@ class NihongoBackup:
             NihongoBackupConstant.Columns.STATUS,
             NihongoBackupConstant.Columns.KANJI_TEXT,
             NihongoBackupConstant.TABLE_NAME
-        )) # May raise sqlite3.OperationalError if SQLite file exists
+        )) # May raise sqlite3.OperationalError if SQLite file exists but reading error
 
-        data: list[list[Any]] = cursor.fetchall()
+        data: list[list[int, int, str | None]] = cursor.fetchall()
 
         return {
             FlashcardType.WORD: [i[0] for i in data if bool(i[1]) and i[2] == None],
@@ -62,10 +61,10 @@ class NihongoBackup:
 
     def get_counted_flashcard_progress(self) -> dict[str, list[int]]:
         """ Function: Get counted flashcard progress data """
-        uncounted_data: dict[str, list[int]] = self.get_flashcard_progress()
-        counted_data: dict[str, list[int]] = dict()
+        progress: dict[str, list[int]] = self.get_flashcard_progress()
 
-        for flashcard_type in uncounted_data:
-            counted_data[flashcard_type] = [uncounted_data[flashcard_type].count(j) for j in range(0, 13)]
-
-        return counted_data
+        return {
+            FlashcardType.WORD: [progress[FlashcardType.WORD].count(i) for i in range(0, 13)],
+            FlashcardType.KANJI: [progress[FlashcardType.KANJI].count(i) for i in range(0, 13)],
+            FlashcardType.ANY: [progress[FlashcardType.ANY].count(i) for i in range(0, 13)]
+        }
